@@ -1,0 +1,433 @@
+Министерство
+ науки и высшего образования Российской Федерации 
+ФЕДЕРАЛЬНОЕ ГОСУДАРСТВЕННОЕ АВТОНОМНОЕ ОБРАЗОВАТЕЛЬНОЕ УЧРЕЖДЕНИЕ ВЫСШЕГО ОБРАЗОВАНИЯ
+«Национальный исследовательский университет ИТМО» (Университет ИТМО)
+Факультет: 
+Факультета прикладной информатики
+Образовательная программа:
+Мобильные и сетевые технологии
+Направление подготовки (специальность): 
+09.03.03
+О Т Ч Ё Т
+по выпускной квалификационной работе
+Тема: 
+Разработка информационной системы для поиска и организации выгула собак
+Выполнил: 
+Якунин Андрей Денисович
+Научный руководитель: Говоров Антон Игоричев
+Санкт-Петербург
+2025
+СОДЕРЖАНИЕ
+<w:tab w:val="right" w:leader="none" w:pos="12000"/></w:tabs><w:spacing w:before="60" w:line="240" w:lineRule="auto"/><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b w:val="1"/><w:bCs w:val="1"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:fldChar w:fldCharType="begin"/><w:instrText xml:space="preserve"> TOC \h \u \z \t &quot;Heading 1,1,Heading 2,2,Heading 3,3,Heading 4,4,Heading 5,5,Heading 6,6,&quot;</w:instrText><w:fldChar w:fldCharType="separate"/></w:r><w:hyperlink w:anchor="_p86exra7f6t1"><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:b w:val="0"/><w:bCs w:val="0"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">ВВЕДЕНИЕ
+<w:t xml:space="preserve">3
+<w:tab w:val="right" w:leader="none" w:pos="12000"/></w:tabs><w:spacing w:before="60" w:line="240" w:lineRule="auto"/><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b w:val="1"/><w:bCs w:val="1"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/></w:rPr></w:pPr><w:hyperlink w:anchor="_94tkcedx70dy"><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:b w:val="0"/><w:bCs w:val="0"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Глава 1. Исследование предметной области
+<w:t xml:space="preserve">5
+<w:tab w:val="right" w:leader="none" w:pos="12000"/></w:tabs><w:spacing w:before="60" w:line="240" w:lineRule="auto"/><w:ind w:left="360" w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b w:val="0"/><w:bCs w:val="0"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/></w:rPr></w:pPr><w:hyperlink w:anchor="_2lo6qyagr71g"><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:b w:val="0"/><w:bCs w:val="0"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">1.1 Описание предметной области
+<w:t xml:space="preserve">5
+<w:tab w:val="right" w:leader="none" w:pos="12000"/></w:tabs><w:spacing w:before="60" w:line="240" w:lineRule="auto"/><w:ind w:left="360" w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b w:val="0"/><w:bCs w:val="0"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/></w:rPr></w:pPr><w:hyperlink w:anchor="_x0ii9s2mtvve"><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:b w:val="0"/><w:bCs w:val="0"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">1.2 Исследование аналогов
+<w:t xml:space="preserve">8
+<w:tab w:val="right" w:leader="none" w:pos="12000"/></w:tabs><w:spacing w:before="60" w:line="240" w:lineRule="auto"/><w:ind w:left="360" w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b w:val="0"/><w:bCs w:val="0"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/></w:rPr></w:pPr><w:hyperlink w:anchor="_kd9j08sarngo"><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:b w:val="0"/><w:bCs w:val="0"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">1.3. Сравнительная характеристика существующих аналогов
+<w:t xml:space="preserve">13
+<w:tab w:val="right" w:leader="none" w:pos="12000"/></w:tabs><w:spacing w:before="60" w:line="240" w:lineRule="auto"/><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b w:val="1"/><w:bCs w:val="1"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/></w:rPr></w:pPr><w:hyperlink w:anchor="_vfvlkhnqshm8"><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:b w:val="0"/><w:bCs w:val="0"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Глава 2. Формулирование требований к системе
+<w:t xml:space="preserve">15
+<w:tab w:val="right" w:leader="none" w:pos="12000"/></w:tabs><w:spacing w:before="60" w:line="240" w:lineRule="auto"/><w:ind w:left="360" w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b w:val="0"/><w:bCs w:val="0"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/></w:rPr></w:pPr><w:hyperlink w:anchor="_cwgqo6g4ofkp"><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:b w:val="0"/><w:bCs w:val="0"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">2.1 Функциональные требования
+<w:t xml:space="preserve">15
+<w:tab w:val="right" w:leader="none" w:pos="12000"/></w:tabs><w:spacing w:before="60" w:line="240" w:lineRule="auto"/><w:ind w:left="360" w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b w:val="0"/><w:bCs w:val="0"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/></w:rPr></w:pPr><w:hyperlink w:anchor="_7ehdvfg2burm"><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:b w:val="0"/><w:bCs w:val="0"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">2.2 Нефункциональные требования
+<w:t xml:space="preserve">18
+<w:tab w:val="right" w:leader="none" w:pos="12000"/></w:tabs><w:spacing w:before="60" w:line="240" w:lineRule="auto"/><w:ind w:left="360" w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b w:val="0"/><w:bCs w:val="0"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/></w:rPr></w:pPr><w:hyperlink w:anchor="_s8p5dq90ynph"><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:b w:val="0"/><w:bCs w:val="0"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">2.3 Диаграмма BPMN
+<w:t xml:space="preserve">19
+<w:tab w:val="right" w:leader="none" w:pos="12000"/></w:tabs><w:spacing w:before="60" w:line="240" w:lineRule="auto"/><w:ind w:left="360" w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b w:val="0"/><w:bCs w:val="0"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/></w:rPr></w:pPr><w:hyperlink w:anchor="_cdmmtxxdt2v4"><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:b w:val="0"/><w:bCs w:val="0"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">2.4 UML Use Case Диаграмма
+<w:t xml:space="preserve">20
+<w:tab w:val="right" w:leader="none" w:pos="12000"/></w:tabs><w:spacing w:before="60" w:line="240" w:lineRule="auto"/><w:ind w:left="360" w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b w:val="0"/><w:bCs w:val="0"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/></w:rPr></w:pPr><w:hyperlink w:anchor="_yq514xkv4wlr"><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:b w:val="0"/><w:bCs w:val="0"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">2.5 AS-IS/TO-BE Диаграмма
+<w:t xml:space="preserve">21
+<w:tab w:val="right" w:leader="none" w:pos="12000"/></w:tabs><w:spacing w:before="60" w:line="240" w:lineRule="auto"/><w:ind w:left="360" w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b w:val="0"/><w:bCs w:val="0"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/></w:rPr></w:pPr><w:hyperlink w:anchor="_90krmnxv1za0"><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:b w:val="0"/><w:bCs w:val="0"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">2.6 Архитектура работы приложения
+<w:t xml:space="preserve">23
+<w:tab w:val="right" w:leader="none" w:pos="12000"/></w:tabs><w:spacing w:before="60" w:line="240" w:lineRule="auto"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/></w:rPr></w:pPr><w:hyperlink w:anchor="_h8th24ey657u"><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Глава 3. ОБЗОР ЛИТЕРАТУРЫ ПО ТЕМЕ ИССЛЕДОВАНИЯ
+<w:t xml:space="preserve">27
+<w:tab w:val="right" w:leader="none" w:pos="12000"/></w:tabs><w:spacing w:before="60" w:line="240" w:lineRule="auto"/><w:ind w:left="360" w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/></w:rPr></w:pPr><w:hyperlink w:anchor="_fsdw9pr1koum"><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">3.1 Ключевые ученые и разработчики
+<w:t xml:space="preserve">27
+<w:tab w:val="right" w:leader="none" w:pos="12000"/></w:tabs><w:spacing w:before="60" w:line="240" w:lineRule="auto"/><w:ind w:left="360" w:firstLine="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/></w:rPr></w:pPr><w:hyperlink w:anchor="_jao1ripx9s94"><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:i w:val="0"/><w:iCs w:val="0"/><w:smallCaps w:val="0"/><w:strike w:val="0"/><w:color w:val="000000"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:u w:val="none"/><w:shd w:fill="auto" w:val="clear"/><w:vertAlign w:val="baseline"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">3.2 Ключевые организации
+<w:t xml:space="preserve">30
+ВВЕДЕНИЕ
+В условиях цифровизации повседневных практик и растущей урбанизации всё большее значение приобретают информационные системы, направленные на автоматизацию бытовых услуг и повышение качества жизни владельцев домашних животных. Одним из таких направлений является сфера профессионального выгула собак, которая в последние годы выходит за рамки неформальных договоренностей и всё чаще требует структурированного подхода с гарантиями безопасности и прозрачности.
+Собаки являются одними из самых распространенных домашних животных в мире. По данным Всемирной организации здравоохранения животных (WOAH), численность домашних собак в мире превышает 900 миллионов особей. В России, согласно исследованиям аналитических агентств, более 40% городских семей содержат собак. Одновременно с этим растет занятость владельцев, что формирует устойчивый спрос на профессиональные услуги по выгулу собак. По оценкам экспертов, рынок pet-услуг в России ежегодно растет на 15-20%, при этом услуги выгула составляют значительную долю этого сегмента.
+Несмотря на рост спроса на услуги выгула собак, процессы поиска исполнителей и организации услуг в большинстве случаев остаются неструктурированными и фрагментированными. Владельцы вынуждены искать выгульщиков через доски объявлений (Avito, VK) или по рекомендациям знакомых, не имея возможности проверить квалификацию исполнителя, ознакомиться с отзывами других клиентов или отследить местонахождение питомца во время прогулки. Существующие цифровые решения, ориентированные на pet-услуги, как правило, фокусируются либо на ветеринарных сервисах, либо на продаже товаров для животных, но практически не охватывают сегмент организации и мониторинга услуг выгула с применением современных технологий геолокации и GPS-треккинга.
+Дополнительной проблемой является отсутствие централизованной платформы, позволяющей профессиональным выгульщикам эффективно находить клиентов, управлять своим расписанием и формировать репутацию через систему рейтингов и отзывов. В результате теряется потенциал создания прозрачного, безопасного и эффективного рынка услуг, где доверие между участниками подкрепляется технологическими инструментами контроля и верификации.
+Актуальность данной выпускной квалификационной работы обусловлена необходимостью разработки специализированной информационной системы, которая позволяла бы автоматизировать процесс поиска и бронирования услуг выгула собак, обеспечивать безопасность и прозрачность через GPS-мониторинг в реальном времени, формировать доверительную среду через систему рейтингов и верификации исполнителей. Использование современных технологий геолокации, онлайн-платежей и push-уведомлений в данном контексте способствует повышению качества сервиса и удовлетворенности как владельцев собак, так и профессиональных выгульщиков.
+Целью выпускной квалификационной работы является разработка информационной системы для поиска и организации услуг по выгулу собак, предназначенной для автоматизации процесса взаимодействия владельцев и выгульщиков, обеспечения GPS-мониторинга прогулок и формирования прозрачной среды оказания услуг.
+Для достижения поставленной цели необходимо выполнить следующие задачи:
+провести исследование предметной области и анализ существующих аналогов;
+сформулировать требования к разрабатываемой системе;
+осуществить проектирование архитектуры и модели данных веб-приложения;
+реализовать механизмы поиска исполнителей с использованием геолокации и интеллектуальных фильтров;
+интегрировать систему GPS-мониторинга для отслеживания прогулок в реальном времени;
+Разрабатываемая информационная система ориентирована на две основные группы пользователей: владельцев собак, нуждающихся в качественных и безопасных услугах выгула, и профессиональных выгульщиков, заинтересованных в привлечении клиентов и построении репутации. Система может рассматриваться как инструмент создания цивилизованного рынка pet-услуг, а также как основа для формирования специализированного сообщества, объединённого заботой о благополучии домашних животных
+Глава 1. Исследование предметной области
+1.1 Описание предметной области
+<w:t xml:space="preserve">Предметная область данной выпускной квалификационной работы охватывает процессы поиска, организации и мониторинга услуг по профессиональному выгулу собак в городской среде с применением цифровых инструментов. В центре внимания находится взаимодействие двух ключевых групп пользователей: владельцев собак, нуждающихся в качественных и безопасных услугах выгула, и профессиональных выгульщиков, предоставляющих данные услуги.
+Рынок услуг по выгулу собак характеризуется высокой фрагментацией и отсутствием централизованных платформ для взаимодействия участников. Владельцы собак вынуждены искать исполнителей через доски объявлений, социальные сети или по рекомендациям знакомых, что не гарантирует качество услуг и безопасность питомца. Отсутствие системы верификации, рейтингов и возможности контроля процесса выгула создает риски и снижает уровень доверия между участниками рынка.
+Объектом исследования является совокупность процессов, связанных с организацией услуг выгула собак: поиск исполнителей, бронирование услуг, выполнение прогулки, оплата и обратная связь. Субъектами исследования выступают владельцы собак и профессиональные выгульщики, взаимодействующие в рамках оказания услуг.
+В рамках предметной области выделяются следующие основные сущности:
+владелец собаки - пользователь, инициирующий поиск и бронирование услуг выгула;
+выгульщик - исполнитель услуг, обладающий опытом работы с собаками и предоставляющий услуги выгула;
+питомец - собака, профиль которой содержит информацию о породе, возрасте, поведенческих особенностях и медицинских данных;
+заказ на выгул - фиксация запроса владельца с указанием даты, времени, продолжительности и особых требований;
+прогулка - процесс выполнения заказа с фиксацией маршрута, времени и расстояния;
+отзыв и рейтинг - оценка качества услуги владельцем после завершения прогулки
+платеж - финансовая транзакция за оказанную услугу.
+Основные процессы предметной области включают:
+регистрацию пользователей (владельцев и выгульщиков) с созданием профилей;
+поиск подходящих выгульщиков по геолокации, рейтингу, опыту и стоимости услуг;
+онлайн-бронирование услуги с выбором даты, времени и параметров прогулки;
+выполнение прогулки с активацией GPS-мониторинга в реальном времени;
+автоматическую оплату услуги через интегрированные платежные системы;
+оставление отзыва и оценки качества услуги;
+формирование рейтинга выгульщика на основе отзывов клиентов.
+Ключевой особенностью рассматриваемой предметной области является необходимость обеспечения безопасности и прозрачности процесса выгула. Владельцы собак испытывают естественное беспокойство за своих питомцев и нуждаются в инструментах контроля: возможности видеть местоположение собаки в реальном времени на карте, получать уведомления о начале и завершении прогулки, просматривать маршрут и статистику (расстояние, время, средняя скорость). В связи с этим актуальной задачей является разработка информационной системы, интегрирующей технологии геолокации, GPS-треккинга и push-уведомлений для обеспечения полного контроля и спокойствия владельцев.
+Таким образом, предметная область сочетает элементы сервисной экономики, pet-индустрии и цифровой обработки геоданных. Разработка системы направлена на создание прозрачного, безопасного и эффективного рынка услуг выгула собак с применением современных информационных технологий.
+</w:r><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:b w:val="1"/><w:bCs w:val="1"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">1.2 Исследование аналогов
+В рамках данной выпускной квалификационной работы было проведено исследование существующих цифровых решений, ориентированных на организацию услуг по уходу за домашними животными, в частности выгулу собак. В качестве аналогов были выбраны платформы Rover, Wag!, Dogwalker.com и PetBacker. Для каждой из них было составлено общее описание, выделен основной функционал, рассмотрены особенности пользовательского интерфейса, а также выявлены достоинства и недостатки.
+Выбор именно этих аналогов был обусловлен следующими принципами:
+близость предметной области: все выбранные приложения
+непосредственно ориентированы на организацию услуг по выгулу собаки включая выгул, в отличие от универсальных платформ для поиска исполнителей различных бытовых услуг;
+наличие функционала поиска и бронирования: рассматриваемые 
+аналоги позволяют владельцам находить выгульщиков и бронировать услуги онлайн, что является базовой функцией разрабатываемой системы;
+ориентация на взаимодействие владельцев и исполнителей: данные 
+решения фокусируются на создании marketplace-платформы для pet-услуг, а не исключительно на информационных каталогах или форумах;
+доступность для анализа: выбранные приложения находятся в
+открытом доступе, имеют публичные веб-сайты и мобильные приложения, что позволяет объективно оценить их функциональные возможности и ограничения.
+Следует отметить, что количество специализированных платформ, посвящённых именно услугам выгула собак, является ограниченным. Большинство существующих решений либо ориентированы на зарубежные рынки (США, Европа, Азия) и не имеют русскоязычной локализации, либо представляют собой общие доски объявлений без специализированного функционала для pet-услуг. Часть потенциальных аналогов не рассматривалась по причине отсутствия функций онлайн-бронирования, закрытого доступа или смещения фокуса в сторону других видов услуг (груминг, ветеринария, передержка).
+Таким образом, платформы Rover, Wag!, Dogwalker.com и PetBacker были выбраны как наиболее релевантные аналоги, позволяющие провести корректное сравнение с разрабатываемой системой. Их анализ позволяет выявить существующие ограничения в области GPS-мониторинга, локализации интерфейса и адаптации под российский рынок, что обосновывает необходимость разработки нового решения, ориентированного на потребности российских владельцев собак с акцентом на безопасность и прозрачность услуг.
+1.2.1 Rover
+Rover - крупнейшая американская онлайн-платформа для поиска услуг по уходу за домашними животными, включая выгул собак, передержку и присмотр. Основное назначение платформы заключается в соединении владельцев собак с проверенными исполнителями услуг. Приложение ориентировано на североамериканский рынок и имеет многолетнюю историю работы с миллионами пользователей.
+Основной функционал:
+поиск выгульщиков и pet-ситтеров по геолокации с применением фильтров;
+просмотр детальных профилей исполнителей с фотографиями, описанием опыта и отзывами;
+онлайн-бронирование услуг через календарь доступности;
+интегрированная система безопасных онлайн-платежей;
+страхование услуг и круглосуточная поддержка клиентов;
+возможность обмена сообщениями между владельцем и выгульщиком;
+система рейтингов и верифицированных отзывов.
+Особенности интерфейса:
+интуитивно понятный веб- и мобильный интерфейс с акцентом на визуальное представление профилей;
+удобная система фильтрации и сортировки результатов поиска;
+карта с отображением местоположения исполнителей;
+встроенный мессенджер для общения.
+Достоинства:
+развитая система верификации и проверки исполнителей;
+широкий выбор услуг и большая база проверенных выгульщиков;
+наличие страхования и гарантий качества услуг;
+удобный и современный пользовательский интерфейс.
+Недостатки:
+отсутствие русскоязычного интерфейса и локализации под российский рынок;
+отсутствие GPS-мониторинга прогулок в реальном времени;
+высокие комиссии платформы (до 20-25% от стоимости услуги);
+ориентация исключительно на рынки США и Канады.
+Платформа Rover представлена в официальных магазинах мобильных приложений и имеет высокий пользовательский рейтинг (4.7-4.8 из 5). Количество установок исчисляется миллионами, что указывает на лидирующую позицию на североамериканском рынке.
+<w:t xml:space="preserve">1.2.2 Wag!
+ 
+<w:t xml:space="preserve">Wag! - американская мобильная платформа для услуг выгула собак, известная своей технологичностью и акцентом на GPS-мониторинг прогулок. Приложение позиционируется как &quot;Uber для выгула собак&quot; и ориентировано на городских жителей, нуждающихся в быстром и надежном сервисе.
+мгновенный поиск доступных выгульщиков поблизости;
+онлайн-бронирование с возможностью заказа &quot;на сейчас&quot; или на определенное время;
+GPS-треккинг прогулки в реальном времени с отображением маршрута на карте;
+автоматические фотоотчеты и обновления во время прогулки;
+безопасные онлайн-платежи с автоматическим расчетом;
+рейтинговая система и отзывы о выгульщиках;
+круглосуточная техподдержка и страхование.
+Особенности интерфейса:
+минималистичный мобильный интерфейс с акцентом на скорость бронирования;
+интерактивная карта с live-треккингом прогулки;
+push-уведомления о статусе прогулки;
+галерея фотографий, отправляемых выгульщиком во время прогулки.
+Достоинства:
+наличие GPS-мониторинга прогулок в реальном времени;
+быстрое бронирование и возможность заказа услуги &quot;по требованию&quot;;
+фотоотчеты во время прогулки для спокойствия владельцев;
+технологичность и современный подход к сервису.
+Недостатки:
+оотсутствие русскоязычного интерфейса;
+доступность только в крупных городах США;
+высокая стоимость услуг по сравнению с конкурентами;
+отсутствие адаптации под российский рынок.
+</w:r><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Wag! имеет рейтинг около 4.5 из 5 в магазинах приложений с сотнями тысяч установок, что подтверждает популярность сервиса среди американских пользователей.
+<w:t xml:space="preserve">1.2.3 DogHero
+<w:t xml:space="preserve">DogHero - международная онлайн-платформа для поиска услуг по уходу за домашними животными, включая выгул собак, передержку, дневной уход и ситтинг. Сервис ориентирован на владельцев собак и профессиональных исполнителей, предоставляя расширенные инструменты для безопасного и удобного взаимодействия.
+Функционал:
+каталог выгульщиков и ситтеров с подробными профилями;
+система онлайн-бронирования услуг;
+встроенная система онлайн-оплаты;
+отзывы и рейтинги исполнителей;
+GPS-мониторинг прогулок в реальном времени;
+обмен сообщениями между владельцем и исполнителем.
+Особенности интерфейса:
+<w:t xml:space="preserve">Интерфейс ориентирован на простоту. Основное внимание уделено текстовому контенту и навигации по сообществу.
+Достоинства:
+развитый и удобный функционал для владельцев собак;
+высокий уровень доверия за счет проверки исполнителей;
+наличие GPS-треккинга и отчетов о прогулках;
+интегрированная система оплаты и бронирования;
+мобильные приложения с уведомлениями.
+Недостатки:
+ограниченная доступность в отдельных странах и регионах;
+более высокая стоимость услуг по сравнению с локальными сервисами;
+ориентация преимущественно на международный рынок;
+интерфейс и поддержка могут быть недоступны на русском языке.
+Сервис обладает высокой популярностью в странах присутствия и используется как полноценная платформа для регулярного заказа услуг по уходу за собаками, обеспечивая высокий уровень контроля и удобства для владельцев.
+1.3. Сравнительная характеристика существующих аналогов
+На основе проведенного исследования была составлена сравнительная характеристика аналогичных решений, представленная в Таблице 1.
+Таблица 1 – Сравнение аналогов
+<w:tblPr><w:tblStyle w:val="Table1"/><w:tblW w:w="9029.0" w:type="dxa"/><w:jc w:val="left"/><w:tblBorders><w:top w:color="000000" w:space="0" w:sz="8" w:val="single"/><w:left w:color="000000" w:space="0" w:sz="8" w:val="single"/><w:bottom w:color="000000" w:space="0" w:sz="8" w:val="single"/><w:right w:color="000000" w:space="0" w:sz="8" w:val="single"/><w:insideH w:color="000000" w:space="0" w:sz="8" w:val="single"/><w:insideV w:color="000000" w:space="0" w:sz="8" w:val="single"/></w:tblBorders><w:tblLayout w:type="fixed"/><w:tblLook w:val="0600"/></w:tblPr><w:tblGrid><w:gridCol w:w="1805.8"/><w:gridCol w:w="1805.8"/><w:gridCol w:w="1805.8"/><w:gridCol w:w="1805.8"/><w:gridCol w:w="1805.8"/><w:tblGridChange w:id="0"><w:tblGrid><w:gridCol w:w="1805.8"/><w:gridCol w:w="1805.8"/><w:gridCol w:w="1805.8"/><w:gridCol w:w="1805.8"/><w:gridCol w:w="1805.8"/></w:tblGrid></w:tblGridChange></w:tblGrid><w:tr><w:trPr><w:cantSplit w:val="0"/><w:tblHeader w:val="0"/></w:trPr><w:tc><w:tcPr><w:shd w:fill="auto" w:val="clear"/><w:tcMar><w:top w:w="100.0" w:type="dxa"/><w:left w:w="100.0" w:type="dxa"/><w:bottom w:w="100.0" w:type="dxa"/><w:right w:w="100.0" w:type="dxa"/></w:tcMar><w:vAlign w:val="top"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000AE"><w:pPr><w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Критерий
+<w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000AF"><w:pPr><w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Rover
+<w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000B0"><w:pPr><w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Wag!
+<w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000B1"><w:pPr><w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">DogHero
+<w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000B2"><w:pPr><w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Разрабатываемое решение
+<w:trPr><w:cantSplit w:val="0"/><w:tblHeader w:val="0"/></w:trPr><w:tc><w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000B3"><w:pPr><w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Аналитика и статистика для владельца
+<w:tcPr><w:tcMar><w:top w:w="100.0" w:type="dxa"/><w:left w:w="140.0" w:type="dxa"/><w:bottom w:w="100.0" w:type="dxa"/><w:right w:w="140.0" w:type="dxa"/></w:tcMar><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000B4"><w:pPr><w:widowControl w:val="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Ограничена базовой историей заказов без аналитики
+<w:tcPr><w:tcMar><w:top w:w="100.0" w:type="dxa"/><w:left w:w="140.0" w:type="dxa"/><w:bottom w:w="100.0" w:type="dxa"/><w:right w:w="140.0" w:type="dxa"/></w:tcMar><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000B5"><w:pPr><w:widowControl w:val="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Отображается история услуг без статистических показателей
+<w:tcPr><w:tcMar><w:top w:w="100.0" w:type="dxa"/><w:left w:w="140.0" w:type="dxa"/><w:bottom w:w="100.0" w:type="dxa"/><w:right w:w="140.0" w:type="dxa"/></w:tcMar><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000B6"><w:pPr><w:widowControl w:val="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Минимальная информация о заказах
+<w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000B7"><w:pPr><w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">да
+<w:trPr><w:cantSplit w:val="0"/><w:tblHeader w:val="0"/></w:trPr><w:tc><w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000B8"><w:pPr><w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Онлайн-бронирование услуг
+<w:tcPr><w:tcMar><w:top w:w="100.0" w:type="dxa"/><w:left w:w="140.0" w:type="dxa"/><w:bottom w:w="100.0" w:type="dxa"/><w:right w:w="140.0" w:type="dxa"/></w:tcMar><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000B9"><w:pPr><w:widowControl w:val="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Поддерживается бронирование через платформу
+<w:tcPr><w:tcMar><w:top w:w="100.0" w:type="dxa"/><w:left w:w="140.0" w:type="dxa"/><w:bottom w:w="100.0" w:type="dxa"/><w:right w:w="140.0" w:type="dxa"/></w:tcMar><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000BA"><w:pPr><w:widowControl w:val="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Полноценное онлайн-бронирование
+<w:tcPr><w:tcMar><w:top w:w="100.0" w:type="dxa"/><w:left w:w="140.0" w:type="dxa"/><w:bottom w:w="100.0" w:type="dxa"/><w:right w:w="140.0" w:type="dxa"/></w:tcMar><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000BB"><w:pPr><w:widowControl w:val="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Онлайн-бронирование доступно
+<w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000BC"><w:pPr><w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Да
+<w:trPr><w:cantSplit w:val="0"/><w:tblHeader w:val="0"/></w:trPr><w:tc><w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000BD"><w:pPr><w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Общий чат
+<w:tcPr><w:tcMar><w:top w:w="100.0" w:type="dxa"/><w:left w:w="140.0" w:type="dxa"/><w:bottom w:w="100.0" w:type="dxa"/><w:right w:w="140.0" w:type="dxa"/></w:tcMar><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000BE"><w:pPr><w:widowControl w:val="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Отсутствует встроенный чат
+<w:tcPr><w:tcMar><w:top w:w="100.0" w:type="dxa"/><w:left w:w="140.0" w:type="dxa"/><w:bottom w:w="100.0" w:type="dxa"/><w:right w:w="140.0" w:type="dxa"/></w:tcMar><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000BF"><w:pPr><w:widowControl w:val="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Реализован общий чат
+<w:tcPr><w:tcMar><w:top w:w="100.0" w:type="dxa"/><w:left w:w="140.0" w:type="dxa"/><w:bottom w:w="100.0" w:type="dxa"/><w:right w:w="140.0" w:type="dxa"/></w:tcMar><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000C0"><w:pPr><w:widowControl w:val="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Чат отсутствует
+<w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000C1"><w:pPr><w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Да, отдельный чат 
+<w:trPr><w:cantSplit w:val="0"/><w:tblHeader w:val="0"/></w:trPr><w:tc><w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000C2"><w:pPr><w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">GPS-отслеживание прогулки
+<w:tcPr><w:tcMar><w:top w:w="100.0" w:type="dxa"/><w:left w:w="140.0" w:type="dxa"/><w:bottom w:w="100.0" w:type="dxa"/><w:right w:w="140.0" w:type="dxa"/></w:tcMar><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000C3"><w:pPr><w:widowControl w:val="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Не реализовано
+<w:tcPr><w:tcMar><w:top w:w="100.0" w:type="dxa"/><w:left w:w="140.0" w:type="dxa"/><w:bottom w:w="100.0" w:type="dxa"/><w:right w:w="140.0" w:type="dxa"/></w:tcMar><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000C4"><w:pPr><w:widowControl w:val="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Не реализовано
+<w:tcPr><w:tcMar><w:top w:w="100.0" w:type="dxa"/><w:left w:w="140.0" w:type="dxa"/><w:bottom w:w="100.0" w:type="dxa"/><w:right w:w="140.0" w:type="dxa"/></w:tcMar><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000C5"><w:pPr><w:widowControl w:val="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Не реализовано
+<w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000C6"><w:pPr><w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Да
+<w:trPr><w:cantSplit w:val="0"/><w:tblHeader w:val="0"/></w:trPr><w:tc><w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000C7"><w:pPr><w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Русскоязычный интерфейс
+<w:tcPr><w:tcMar><w:top w:w="100.0" w:type="dxa"/><w:left w:w="140.0" w:type="dxa"/><w:bottom w:w="100.0" w:type="dxa"/><w:right w:w="140.0" w:type="dxa"/></w:tcMar><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000C8"><w:pPr><w:widowControl w:val="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Интерфейс ориентирован на англоязычный рынок
+<w:tcPr><w:tcMar><w:top w:w="100.0" w:type="dxa"/><w:left w:w="140.0" w:type="dxa"/><w:bottom w:w="100.0" w:type="dxa"/><w:right w:w="140.0" w:type="dxa"/></w:tcMar><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000C9"><w:pPr><w:widowControl w:val="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Англоязычный интерфейс
+<w:tcPr><w:tcMar><w:top w:w="100.0" w:type="dxa"/><w:left w:w="140.0" w:type="dxa"/><w:bottom w:w="100.0" w:type="dxa"/><w:right w:w="140.0" w:type="dxa"/></w:tcMar><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000CA"><w:pPr><w:widowControl w:val="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Отсутствует русская локализация
+<w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000CB"><w:pPr><w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Да
+<w:trPr><w:cantSplit w:val="0"/><w:tblHeader w:val="0"/></w:trPr><w:tc><w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000CC"><w:pPr><w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Интеграция с соцсетями
+<w:tcPr><w:tcMar><w:top w:w="100.0" w:type="dxa"/><w:left w:w="140.0" w:type="dxa"/><w:bottom w:w="100.0" w:type="dxa"/><w:right w:w="140.0" w:type="dxa"/></w:tcMar><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000CD"><w:pPr><w:widowControl w:val="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Авторизация и профиль через соцсети
+<w:tcPr><w:tcMar><w:top w:w="100.0" w:type="dxa"/><w:left w:w="140.0" w:type="dxa"/><w:bottom w:w="100.0" w:type="dxa"/><w:right w:w="140.0" w:type="dxa"/></w:tcMar><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000CE"><w:pPr><w:widowControl w:val="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Интеграция отсутствует
+<w:tcPr><w:tcMar><w:top w:w="100.0" w:type="dxa"/><w:left w:w="140.0" w:type="dxa"/><w:bottom w:w="100.0" w:type="dxa"/><w:right w:w="140.0" w:type="dxa"/></w:tcMar><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000CF"><w:pPr><w:widowControl w:val="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Частичная интеграция
+<w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000D0"><w:pPr><w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Да
+<w:trPr><w:cantSplit w:val="0"/><w:tblHeader w:val="0"/></w:trPr><w:tc><w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000D1"><w:pPr><w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Учет индивидуальных параметров собаки
+<w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000D2"><w:pPr><w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Нет
+<w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000D3"><w:pPr><w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Нет
+<w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000D4"><w:pPr><w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Частично
+<w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="000000D5"><w:pPr><w:spacing w:line="240" w:lineRule="auto"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Да
+Анализ показал, что каждое из существующих решений фокусируется на отдельных аспектах организации услуг выгула собак. Так, Rover и Wag! являются лидерами на западном рынке с развитым функционалом, но не адаптированы для российских пользователей и не имеют русскоязычного интерфейса. Dogwalker.com представляет российский рынок, но обладает ограниченным функционалом и устаревшим интерфейсом. PetBacker ориентирован на азиатский рынок и также не представлен в России.
+При этом ни одно из рассмотренных решений не сочетает все критически важные для российского рынка характеристики: полную русскоязычную локализацию, GPS-мониторинг прогулок в реальном времени, расширенное управление профилями питомцев с медицинскими данными, комплексную систему верификации исполнителей и программу лояльности для постоянных клиентов.
+Глава 2. Формулирование требований к системе
+2.1 Функциональные требования
+В рамках разработки информационной системы для поиска и организации выгула собак были сформулированы функциональные требования, определяющие основные возможности системы и сценарии взаимодействия пользователей с приложением. Все требования сформулированы с точки зрения системы.
+Управление пользователями и профилями
+система должна обеспечивать регистрацию владельцев собак с использованием адреса электронной почты и пароля;
+система должна обеспечивать регистрацию выгульщиков с указанием опыта работы, района обслуживания и загрузкой документов верификации;
+система должна поддерживать аутентификацию зарегистрированных пользователей;
+система должна предоставлять пользователю возможность просматривать и редактировать данные своего профиля;
+система должна позволять владельцам создавать и управлять профилями нескольких питомцев с указанием породы, возраста, особенностей поведения и медицинских данных.
+Поиск и бронирование услуг
+система должна обеспечивать поиск выгульщиков по геолокации пользователя;
+система должна предоставлять фильтры поиска по рейтингу, опыту, цене и доступности;
+система должна отображать профили выгульщиков с рейтингами, отзывами, фотографиями и стоимостью услуг;
+система должна показывать расположение выгульщиков на интерактивной карте;
+система должна обеспечивать возможность бронирования услуги на конкретное время через календарь доступности;
+система должна отправлять автоматические уведомления выгульщику о новом бронировании;
+система должна позволять выгульщику подтверждать или отклонять запросы на бронирование.
+GPS-мониторинг прогулок
+система должна обеспечивать возможность активации GPS-треккинга выгульщиком в начале прогулки;
+система должна отображать местоположение питомца в реальном времени на карте для владельца;
+система должна фиксировать маршрут прогулки с указанием пройденного расстояния и времени;
+система должна сохранять историю всех прогулок с возможностью просмотра маршрутов;
+система должна отправлять уведомления владельцу о начале и завершении прогулки.
+Система оплаты
+система должна интегрироваться с платежными шлюзами для обработки онлайн-платежей;
+система должна поддерживать оплату банковскими картами и электронными кошельками;
+система должна автоматически переводить оплату выгульщику после подтверждения выполнения услуги;
+система должна сохранять историю всех транзакций для владельцев и выгульщиков;
+система должна формировать электронные чеки и отправлять их на email.
+Система рейтингов и отзывов
+система должна обеспечивать возможность оставления отзыва и оценки от 1 до 5 после завершения услуги;
+система должна автоматически рассчитывать средний рейтинг выгульщика на основе всех отзывов;
+система должна отображать отзывы в профиле выгульщика с возможностью сортировки по дате и рейтингу;
+система должна проверять, что отзыв оставлен владельцем, завершившим услугу (верификация отзывов).
+Система уведомлений
+система должна отправлять push-уведомления о подтверждении/отмене бронирования;
+система должна отправлять напоминания о предстоящей прогулке за 1 час;
+система должна отправлять уведомления о начале и завершении прогулки;
+система должна отправлять email-уведомления с подтверждениями и чеками.
+Сформулированные функциональные требования определяют минимально необходимый набор возможностей системы и служат основой для последующего проектирования архитектуры и реализации приложения.
+2.2 Нефункциональные требования
+Нефункциональные требования определяют качественные характеристики системы, влияющие на удобство, надежность и безопасность ее использования.
+время отклика пользовательского интерфейса при нормальной нагрузке не должно превышать двух секунд;
+серверная часть системы должна обрабатывать большинство запросов менее чем за 500 мс.
+Надежность и доступность:
+система должна обеспечивать доступность не ниже 99% в течение месяца;
+данные пользователей должны сохраняться корректно при сбоях и перезапусках системы;
+должна быть предусмотрена возможность резервного копирования данных.
+Безопасность:
+пароли пользователей должны храниться в зашифрованном виде с использованием стойких алгоритмов хэширования;
+все взаимодействия между клиентской и серверной частями должны осуществляться по защищенному протоколу HTTPS;
+система должна быть защищена от распространённых веб-уязвимостей (SQL-инъекции, XSS, CSRF).
+Масштабируемость:
+архитектура системы должна предусматривать возможность увеличения нагрузки за счет роста числа пользователей;
+система должна быть готова к расширению функциональности без существенной переработки архитектуры.
+Удобство использования:
+пользовательский интерфейс должен быть интуитивно понятен и не требовать специального обучения;
+интерфейс должен корректно отображаться на мобильных
+основные функции приложения должны быть доступны с минимальным количеством действий со стороны пользователя.
+Сформулированные нефункциональные требования служат основой для проектирования архитектуры системы, выбора технологического стека и последующей реализации приложения с учетом критериев качества, безопасности и производительности..
+2.3 Диаграмма BPMN
+BPMN используется для детального моделирования бизнес-процессов с разделением ответственности между участниками процесса и системой. Данная нотация позволяет формально описывать последовательность действий, условия переходов и взаимодействие пользователя с приложением.
+В рамках проекта информационной системы для выгула собак BPMN диаграмма описывает процесс поиска выгульщика, бронирования услуги, выполнения прогулки с GPS-мониторингом и оставления отзыва (рисунок 1). Диаграмма разделена на дорожки, отражающие действия владельца собаки, выгульщика и системы. Владелец инициирует процесс поиском выгульщика через приложение, применяет фильтры, просматривает профили и выбирает подходящего исполнителя. Система обрабатывает запрос на бронирование, отправляет уведомление выгульщику и ожидает подтверждения. После подтверждения система напоминает о предстоящей прогулке, активирует GPS-треккинг во время выгула и обрабатывает оплату после завершения. Владелец может оставить отзыв, который система фиксирует и использует для обновления рейтинга выгульщика.
+Рисунок 1 - Диаграмма BPMN
+2.4 UML Use Case Диаграмма
+Диаграмма вариантов использования (UML Use Case) применяется для описания функциональных возможностей системы с точки зрения внешних акторов и их взаимодействия с системой. Основная цель данной диаграммы - зафиксировать, какие функции система предоставляет пользователям, без углубления во внутреннюю реализацию.
+Рисунок 2 – UML Use Case
+На рисунке 2 приведена диаграмма компонентов в нотации UML. Она отображает, как все части системы делятся между собой и как взаимодействуют. Основные компоненты: клиентское веб/мобильное приложение, API Gateway, микросервисы (User Service, Booking Service, GPS Tracking Service, Payment Service, Notification Service, Review Service), база данных, кэш, внешние API (карты, платежи), брокер сообщений (рисунок 2)
+<w:t xml:space="preserve">2.5 AS-IS/TO-BE Диаграмма
+Было рассмотрено текущее состояние процесса организации выгула собак и его целевая модель после реализации проекта: в настоящее время он включает поиск выгульщика, договоренность, выполнение прогулки, оплату и обратную связь. (рисунок 3).
+Рисунок 3 – AS-IS/TO-BE Диаграмма
+AS-IS (как сейчас)
+Владелец собаки ищет выгульщика через доски объявлений (Avito, VK) или по рекомендациям.
+Просматривает множество объявлений без возможности проверить квалификацию и отзывы.
+Связывается с выгульщиком по телефону или в мессенджерах.
+Долго согласовывает время, цену и условия прогулки.
+Принимает решение на основе субъективных впечатлений без гарантий надежности.
+Встречается с выгульщиком лично для знакомства с питомцем.
+Передает собаку выгульщику без возможности контроля местонахождения.
+Ожидает возвращения собаки, испытывая беспокойство за питомца.
+Оплачивает услугу наличными или переводом на карту.
+Не имеет возможности оставить отзыв для других владельцев.
+TO-BE (как должно быть с системой) 
+Владелец открывает приложение и видит карту с доступными выгульщиками поблизости.
+Применяет фильтры по рейтингу, опыту, цене и доступности.
+Просматривает детальные профили выгульщиков с проверенными отзывами и фотографиями.
+Выбирает подходящего выгульщика и бронирует услугу на конкретное время за 2 минуты.
+Система автоматически отправляет уведомление выгульщику и получает подтверждение.
+Владелец получает напоминание за 1 час до прогулки.
+Передает собаку выгульщику и активирует GPS-мониторинг в приложении.
+Отслеживает местоположение питомца на карте в реальном времени, видит маршрут и расстояние.
+Получает уведомление о завершении прогулки с итоговыми данными (маршрут, время, расстояние).
+Автоматическая безопасная онлайн-оплата через интегрированную платежную систему.
+Оставляет отзыв и оценку, которые сохраняются в системе и влияют на рейтинг выгульщика.
+Вся история прогулок, маршруты и чеки сохраняются в личном кабинете.
+Обоснование перехода:
+Экономия времени: сокращение времени поиска и согласования с
+ нескольких дней до 5-10 минут благодаря централизованной платформе и онлайн-бронированию.
+Безопасность и прозрачность: GPS-мониторинг в реальном времени 
+обеспечивает полный контроль за местонахождением питомца и спокойствие владельца.
+Надежность: система верификации выгульщиков и проверенные 
+отзывы гарантируют качество услуг.
+Удобство оплаты: автоматизированная безопасная онлайн-оплата 
+исключает необходимость наличных расчетов и защищает от мошенничества.
+Прозрачность: все данные о прогулках (маршруты, время, 
+расстояние) сохраняются в истории и доступны для просмотра в любое время.
+Контроль качества: система рейтингов и отзывов мотивирует 
+выгульщиков предоставлять качественные услуги и помогает владельцам принимать обоснованные решения.
+2.6 Архитектура работы приложения
+<w:left w:space="0" w:sz="0" w:val="nil"/><w:bottom w:space="0" w:sz="0" w:val="nil"/><w:right w:space="0" w:sz="0" w:val="nil"/><w:between w:space="0" w:sz="0" w:val="nil"/></w:pBdr><w:shd w:fill="auto" w:val="clear"/><w:spacing w:after="0" w:before="0" w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:right="0" w:firstLine="720"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">Архитектура информационной системы для поиска и организации выгула собак построена по микросервисной модели с разделением на клиентский уровень, уровень приложения (бизнес-логики) и уровень данных. Такой подход обеспечивает разделение ответственности между компонентами системы, упрощает масштабирование, тестирование и поддержку приложения 
+Клиентский уровень не содержит бизнес-логики и используется исключительно для представления данных и взаимодействия с пользователем.
+Клиентский уровень (Client tier)
+Основные функции клиентского уровня:
+отображение интерфейса приложения (профиль пользователя, профиль питомца, карта с выгульщиками, календарь бронирования, GPS-трекинг прогулки);
+сбор пользовательских данных (регистрация, создание профиля питомца, выбор выгульщика, параметры бронирования);
+отправка HTTP-запросов к серверному API;
+обработка и визуализация данных, полученных от сервера (отображение выгульщиков на карте, GPS-мониторинг в реальном времени);
+обработка push-уведомлений о статусе бронирования и прогулки.
+Уровень приложения (Application tier)
+Уровень приложения является центральным элементом архитектуры и содержит основную бизнес-логику системы. Взаимодействие между клиентом и внутренними сервисами осуществляется через API Gateway.
+Веб-сервер принимает запросы от клиентского уровня, выполняет
+базовую обработку запросов и передает их в API. Также он отвечает за маршрутизацию запросов и контроль доступа.
+API выступает в роли единой точки входа для всех клиентских
+запросов и обеспечивает взаимодействие между отдельными сервисами системы.
+Основные сервисы уровня приложения:
+User Service - отвечает за управление пользователями: регистрацию владельцев и выгульщиков, аутентификацию, хранение и обновление данных профилей, управление профилями питомцев.
+Booking Service - обрабатывает бронирования услуг: создание, подтверждение, отмену заказов, управление календарем доступности выгульщиков, взаимодействие с платежным сервисом и сервисом уведомлений.
+GPS Tracking Service - обеспечивает GPS-мониторинг прогулок: прием и обработку GPS-координат от мобильного приложения выгульщика, передачу данных о местоположении владельцу в реальном времени через WebSocket, сохранение маршрутов прогулок с расчетом расстояния и времени.
+Payment Service - реализует логику обработки платежей: интеграцию с внешними платежными шлюзами (Stripe, Яндекс.Касса), обработку транзакций, автоматический перевод средств выгульщику после завершения услуги, формирование электронных чеков.
+Review Service - управляет системой рейтингов и отзывов: фиксацию отзывов владельцев, верификацию отзывов (только от пользователей, завершивших услугу), автоматический расчет среднего рейтинга выгульщиков.
+Notification Service - обеспечивает отправку уведомлений: push-уведомления о подтверждении/отмене бронирования, напоминания о предстоящих прогулках, уведомления о начале/завершении прогулки, отправку email с подтверждениями и чеками.
+Взаимодействие между сервисами осуществляется через API Gateway и Message Broker (брокер сообщений), что позволяет изолировать бизнес-логику и при необходимости масштабировать отдельные компоненты независимо друг от друга.
+Уровень данных предназначен для хранения и управления всей информацией приложения.
+База данных (БД):
+хранение данных пользователей (владельцев и выгульщиков);
+профили питомцев с медицинскими данными и особенностями поведения;
+заказы на выгул с параметрами бронирования;
+сессии прогулок с GPS-точками маршрутов;
+отзывы и рейтинги выгульщиков;
+транзакции и история платежей.
+Кэш:
+хранение текущих GPS-координат активных прогулок для быстрого доступа;
+кэширование часто запрашиваемых данных (профили популярных выгульщиков, результаты поиска);
+управление сессиями пользователей;
+снижение нагрузки на основную базу данных.
+Файловое хранилище (S3 или аналог):
+хранение фотографий пользователей и питомцев;
+документы верификации выгульщиков;
+фотоотчеты с прогулок (опционально).
+Внешние API и сервисы:
+Картографические API (Leaflet, OpenStreetMap) - отображение карт, маршрутов и местоположения выгульщиков;
+Платежные шлюзы (Stripe, PayPal, Яндекс.Касса) - обработка онлайн-платежей;
+Email-сервис (SendGrid, SMTP) - отправка email-уведомлений;
+Push-сервис (FCM, APNS) - отправка push-уведомлений на мобильные устройства
+Данная архитектура обеспечивает высокую масштабируемость, отказоустойчивость и гибкость системы, позволяя независимо развивать и масштабировать отдельные компоненты в зависимости от нагрузки и бизнес-требований.
+Глава 3. ОБЗОР ЛИТЕРАТУРЫ ПО ТЕМЕ ИССЛЕДОВАНИЯ
+3.1 Источники
+Статья
+Название: Разработка веб-приложения для автоматизации управления задачами
+Автор: Свищев А.А., Токарев А.А., Кизим А.В.
+Ссылка: 
+https://cyberleninka.ru/article/n/razrabotka-veb-prilozheniya-dlya-avtomatizatsii-upravleniya-zadachami
+ 
+Значимость: данный источник информации полезен для понимания структуры управления заказами и задачами в информационной системе. В проекте необходимо организовать управление заявками на выгул, расписанием и статусами заказов.
+По ГОСТу: Разработка веб-приложения для автоматизации управления задачами // cyberleninka URL: https://cyberleninka.ru/article/n/razrabotka-veb-prilozheniya-dlya-avtomatizatsii-upravleniya-zadachami (дата обращения: 02.12.2025).
+Статья
+Название: Интеграция геолокации в мобильные приложения для бизнеса: новые возможности и преимущества
+Автор: L-TECH
+Ссылка: 
+https://l-tech.ru/posts/integratsiya-geolokatsii-v-mobilnye-prilozheniya-dlya-biznesa-novye-vozmozhnosti-i-preimuschestva
+Значимость: источник раскрывает процесс интеграции API геолокационных сервисов в мобильные приложения, включая отслеживание местоположения и обработку геоданных, что применимо для реализации GPS-треккинга прогулок.
+По ГОСТу: Интеграция геолокации в мобильные приложения для бизнеса: новые возможности и преимущества
+// L-TECH URL: 
+https://l-tech.ru/posts/integratsiya-geolokatsii-v-mobilnye-prilozheniya-dlya-biznesa-novye-vozmozhnosti-i-preimuschestva
+ (дата обращения: 02.12.2025)
+Статья
+Название: Разработка ПО информационно-поисковой системы для рынка домашних животных
+Автор: Завитков В. В.
+Где: Электронная библиотека СПбПУ (Выпускная квалификационная работа)
+Описание: Представлен проект информационно-поисковой системы, автоматизирующей работу с данными о домашних животных.
+Ссылка:
+ 
+https://elib.spbstu.ru/dl/3/2019/vr/vr19-906.pdf/info
+ 
+Электронная библиотека СПбПУ
+По ГОСТу:
+Завитков В. В. Разработка ПО информационно-поисковой системы для рынка домашних животных: выпускная квалификационная работа // Санкт-Петербургский политехнический университет Петра Великого, Институт компьютерных наук и технологий. 2019. URL:
+ 
+https://elib.spbstu.ru/dl/3/2019/vr/vr19-906.pdf/info
+ (дата обращения: 27.12.2025).
+Статья
+Название: Проект приложения «Потерянные животные»
+Описание: В статье представлен анализ и разработка требований для приложения, предназначенного для поиска потерявшихся животных (в том числе собак) через веб-интерфейс. Это близкая предметная область к поиску/организации выгулов, т.к. включает функционал поиска и обработки данных. Ссылка:
+ 
+https://cyberleninka.ru/article/n/proekt-prilozheniya-poteryannye-zhivotnye
+ 
+КиберЛенинка
+Значимость: источник позволяет рассмотреть анализ предметной области, функциональные требования и архитектуру веб-системы по поиску животных.
+По ГОСТу:
+Проект приложения «Потерянные животные» // CyberLeninka URL:
+ 
+https://cyberleninka.ru/article/n/proekt-prilozheniya-poteryannye-zhivotnye
+ (дата обращения: 27.12.2025)
+3.2 Ключевые организации
+FastAPI — официальная документация по созданию веб-приложений на Python с поддержкой асинхронности и автоматической генерацией OpenAPI/Swagger: [
+1
+]
+Kotlin — официальная документация и руководство по языку программирования Kotlin, включая серверную разработку и Kotlin Multiplatform[
+2
+]
+PostgreSQL — официальная документация по установке, настройке и использованию системы управления базами данных PostgreSQL[
+3
+]

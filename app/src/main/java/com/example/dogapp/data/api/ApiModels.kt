@@ -1,0 +1,287 @@
+package com.example.dogapp.data.api
+
+data class TokenResponseDto(
+    val access_token: String,
+    val refresh_token: String,
+    val token_type: String,
+)
+
+data class LoginRequestDto(
+    val email: String? = null,
+    val phone: String? = null,
+    val password: String,
+)
+
+data class RefreshRequestDto(
+    val refresh_token: String,
+)
+
+data class RegisterRequestDto(
+    val email: String? = null,
+    val phone: String? = null,
+    val telegram: String? = null,
+    val first_name: String,
+    val last_name: String,
+    val middle_name: String? = null,
+    val birth_date: String? = null,
+    val gender: String? = null,
+    val country: String? = null,
+    val city: String? = null,
+    val consent_personal_data: Boolean = true,
+    val consent_privacy_policy: Boolean = true,
+    val password: String,
+    val role_key: String,
+)
+
+data class UserDto(
+    val id: String,
+    val avatar: String? = null,
+    val email: String? = null,
+    val phone: String? = null,
+    val telegram: String? = null,
+    val first_name: String,
+    val last_name: String,
+    val middle_name: String? = null,
+    val gender: String? = null,
+    val country: String? = null,
+    val city: String? = null,
+    val role: RoleDto? = null,
+)
+
+data class RoleDto(
+    val name: String,
+    val key: String,
+)
+
+data class UserUpdateDto(
+    val telegram: String? = null,
+    val first_name: String? = null,
+    val last_name: String? = null,
+    val middle_name: String? = null,
+    val gender: String? = null,
+    val country: String? = null,
+    val city: String? = null,
+)
+
+data class DogDto(
+    val id: String,
+    val name: String,
+    val breed: String? = null,
+    val birth_date: String? = null,
+    val weight_kg: Double? = null,
+    val gender: String? = null,
+    val is_vaccinated: Boolean = false,
+    val is_sterilized: Boolean = false,
+    val is_aggressive: Boolean = false,
+    val behavior_notes: String? = null,
+    val medical_notes: String? = null,
+)
+
+data class DogCreateDto(
+    val name: String,
+    val breed: String? = null,
+    val birth_date: String? = null,
+    val weight_kg: Double? = null,
+    val gender: String? = null,
+    val is_vaccinated: Boolean = false,
+    val is_sterilized: Boolean = false,
+    val is_aggressive: Boolean = false,
+    val behavior_notes: String? = null,
+    val medical_notes: String? = null,
+)
+
+data class DogUpdateDto(
+    val name: String? = null,
+    val breed: String? = null,
+    val birth_date: String? = null,
+    val weight_kg: Double? = null,
+    val gender: String? = null,
+    val is_vaccinated: Boolean? = null,
+    val is_sterilized: Boolean? = null,
+    val is_aggressive: Boolean? = null,
+    val behavior_notes: String? = null,
+    val medical_notes: String? = null,
+)
+
+data class WalkerDto(
+    val id: String,
+    val user_id: String,
+    val bio: String? = null,
+    val experience_years: Int,
+    val price_per_hour: Double,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val service_radius_km: Double,
+    val is_verified: Boolean,
+    val is_available: Boolean,
+    val rating: Double,
+    val reviews_count: Int,
+)
+
+data class BookingDto(
+    val id: String,
+    val owner_id: String,
+    val walker_id: String? = null,
+    val dog_id: String,
+    val scheduled_at: String,
+    val duration_minutes: Int,
+    val price: Double,
+    val status: String,
+    val address_country: String? = null,
+    val address_city: String? = null,
+    val address_street: String? = null,
+    val address_house: String? = null,
+    val address_apartment: String? = null,
+    val meeting_latitude: Double? = null,
+    val meeting_longitude: Double? = null,
+    val owner_notes: String? = null,
+)
+
+data class BookingCreateDto(
+    val dog_id: String,
+    val scheduled_at: String,
+    val duration_minutes: Int,
+    val address_country: String,
+    val address_city: String,
+    val address_street: String,
+    val address_house: String? = null,
+    val address_apartment: String? = null,
+    val meeting_latitude: Double? = null,
+    val meeting_longitude: Double? = null,
+    val owner_notes: String? = null,
+)
+
+data class NominatimAddressDto(
+    val road: String? = null,
+    val house_number: String? = null,
+    val city: String? = null,
+    val town: String? = null,
+    val village: String? = null,
+    val municipality: String? = null,
+    val city_district: String? = null,
+    val suburb: String? = null,
+    val neighbourhood: String? = null,
+    val quarter: String? = null,
+    val state: String? = null,
+    val country: String? = null,
+)
+
+data class NominatimPlaceDto(
+    val display_name: String,
+    val lat: String,
+    val lon: String,
+    val address: NominatimAddressDto? = null,
+)
+
+fun NominatimPlaceDto.streetNameForField(): String {
+    val road = address?.road?.trim()
+    if (!road.isNullOrBlank()) return road
+    return display_name.substringBefore(",").trim().ifBlank { display_name }
+}
+
+fun NominatimPlaceDto.houseNumberFromSuggestion(): String? =
+    address?.house_number?.trim()?.takeIf { it.isNotEmpty() }
+
+fun NominatimPlaceDto.streetLabelForForm(): String = streetNameForField()
+
+fun NominatimPlaceDto.cityLabelForForm(): String {
+    return address?.city
+        ?: address?.town
+        ?: address?.municipality
+        ?: address?.village
+        ?: display_name
+}
+
+fun NominatimPlaceDto.shortStreetSuggestionLabel(): String {
+    val a = address
+    if (a != null) {
+        val district = sequenceOf(
+            a.city_district,
+            a.suburb,
+            a.neighbourhood,
+            a.quarter,
+        )
+            .mapNotNull { it?.trim()?.takeIf { s -> s.isNotEmpty() } }
+            .firstOrNull()
+        val road = a.road?.trim()?.takeIf { it.isNotEmpty() }
+        when {
+            district != null && road != null -> return "$district · $road"
+            road != null -> return road
+            district != null -> return district
+        }
+    }
+    return displayNameShortForSuggestion(display_name)
+}
+
+private fun displayNameShortForSuggestion(displayName: String): String {
+    val noIndex = displayName
+        .replace(Regex("\\b\\d{6}\\b"), "")
+        .replace(Regex("\\s+"), " ")
+        .trim()
+    val parts = noIndex.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+    if (parts.isEmpty()) return displayName
+    if (parts.size == 1) return parts[0]
+    return "${parts[0]} · ${parts[1]}"
+}
+
+data class BookingStatusUpdateDto(
+    val status: String,
+    val cancel_reason: String? = null,
+)
+
+data class WalkSessionDto(
+    val id: String,
+    val booking_id: String,
+    val owner_id: String,
+    val walker_user_id: String,
+    val status: String,
+    val started_at: String,
+    val ended_at: String? = null,
+)
+
+data class WalkSessionStartDto(val booking_id: String)
+
+data class TrackPointDto(
+    val id: String,
+    val session_id: String,
+    val latitude: Double,
+    val longitude: Double,
+    val recorded_at: String,
+)
+
+data class TrackPointInDto(
+    val latitude: Double,
+    val longitude: Double,
+    val accuracy_m: Int? = null,
+)
+
+data class ReviewDto(
+    val id: String,
+    val booking_id: String,
+    val rating: Int,
+    val comment: String? = null,
+)
+
+data class ReviewCreateDto(
+    val booking_id: String,
+    val rating: Int,
+    val comment: String? = null,
+)
+
+data class PaymentDto(
+    val id: String,
+    val booking_id: String,
+    val amount: Double,
+    val currency: String,
+    val status: String,
+)
+
+data class PaymentIntentCreateDto(val booking_id: String)
+
+data class NotificationDto(
+    val id: String,
+    val title: String,
+    val body: String,
+    val created_at: String,
+    val read_at: String? = null,
+)

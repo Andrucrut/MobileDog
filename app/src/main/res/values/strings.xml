@@ -1,0 +1,41 @@
+<resources>
+    <string name="app_name">DogApp</string>
+    <string name="common_yes">Да</string>
+    <string name="common_no">Нет</string>
+    <string name="common_save">Сохранить</string>
+    <string name="common_cancel">Отмена</string>
+
+    <string name="profile_title">Профиль</string>
+    <string name="profile_back_content_description">Назад</string>
+    <string name="profile_label_email">Электронная почта</string>
+    <string name="profile_count_format">%d</string>
+    <string name="profile_data_unavailable">Данные профиля недоступны</string>
+    <string name="profile_edit_title">Обновление профиля</string>
+    <string name="profile_update_data">Обновить данные</string>
+    <string name="profile_refresh">Обновить</string>
+    <string name="profile_settings">Настройки</string>
+    <string name="profile_logout">Выйти</string>
+    <string name="profile_save_title">Сохранение</string>
+    <string name="profile_save_text">Точно сохранить изменения?</string>
+
+    <string name="profile_role">Роль</string>
+    <string name="profile_phone">Телефон</string>
+    <string name="profile_telegram">Telegram</string>
+    <string name="profile_gender">Пол</string>
+    <string name="profile_country">Страна</string>
+    <string name="profile_city">Город</string>
+    <string name="profile_first_name">Имя</string>
+    <string name="profile_last_name">Фамилия</string>
+    <string name="profile_middle_name">Отчество</string>
+    <string name="profile_gender_male">Мужской</string>
+    <string name="profile_gender_female">Женский</string>
+    <string name="profile_notifications">Уведомления</string>
+    <string name="profile_payments">Платежи</string>
+    <string name="profile_reviews">Отзывы</string>
+
+    <string name="settings_title">Настройки</string>
+    <string name="settings_dark_theme">Тёмная тема</string>
+    <string name="settings_compact_ui">Компактный интерфейс</string>
+    <string name="settings_hide_notifications_preview">Скрывать текст уведомлений</string>
+    <string name="settings_back">Назад</string>
+</resources>
