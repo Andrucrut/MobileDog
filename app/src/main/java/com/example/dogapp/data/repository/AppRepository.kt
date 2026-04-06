@@ -163,11 +163,68 @@ class AppRepository(
         )
     }
     suspend fun walkers(lat: Double?, lng: Double?) = withAuthRetry { api.searchWalkers(it, lat = lat, lng = lng, radiusKm = 25.0) }
+    suspend fun walkerById(walkerId: String) = withAuthRetry { api.walkerById(walkerId, it) }
+    suspend fun walkerReviews(walkerId: String) = withAuthRetry { api.walkerReviews(walkerId, it) }
+    suspend fun ensureWalkerProfileExistsForCurrentUser(defaultPricePerHour: Double = 500.0) = withAuthRetry { token ->
+        runCatching { api.myWalkerProfile(token) }
+            .recoverCatching { err ->
+                if (err is retrofit2.HttpException && err.code() == 404) {
+                    api.createMyWalkerProfile(
+                        token,
+                        WalkerCreateMeDto(
+                            price_per_hour = defaultPricePerHour,
+                            service_radius_km = 5.0,
+                        ),
+                    )
+                } else {
+                    throw err
+                }
+            }
+            .getOrThrow()
+    }
     suspend fun ownerBookings() = withAuthRetry { api.ownerBookings(it) }
     suspend fun walkerBookings() = withAuthRetry { api.walkerBookings(it) }
+    suspend fun openBookings() = withAuthRetry { api.openBookings(it) }
+    suspend fun acceptBooking(bookingId: String) = withAuthRetry { api.acceptBooking(bookingId, it) }
+    suspend fun updateBookingStatus(bookingId: String, status: String, cancelReason: String? = null) =
+        withAuthRetry { api.updateBookingStatus(bookingId, it, BookingStatusUpdateDto(status = status, cancel_reason = cancelReason)) }
     suspend fun notifications() = withAuthRetry { api.notifications(it) }
     suspend fun reviews() = withAuthRetry { api.myReviews(it) }
     suspend fun payments() = withAuthRetry { api.myPayments(it) }
+    suspend fun bookingApplications(bookingId: String): List<BookingApplicationDto> = withAuthRetry { token ->
+        api.bookingApplications(bookingId, token)
+    }
+    suspend fun createBookingApplication(bookingId: String, message: String?) =
+        withAuthRetry { token ->
+            api.createBookingApplication(bookingId, token)
+        }
+    suspend fun chooseBookingApplication(bookingId: String, applicationId: String) = withAuthRetry { token ->
+        api.chooseBookingApplication(bookingId, token, ChooseApplicationBodyDto(application_id = applicationId))
+    }
+    suspend fun rejectBookingApplication(bookingId: String, applicationId: String) = withAuthRetry { token ->
+        api.rejectBookingApplication(bookingId, applicationId, token)
+    }
+    suspend fun withdrawBookingApplication(bookingId: String) = withAuthRetry { token ->
+        api.withdrawBookingApplication(bookingId, token)
+    }
+    suspend fun conversations(): List<ConversationDto> = withAuthRetry { token ->
+        api.conversations(token).map { it.conversation.copy(last_message = it.last_message?.text, unread_count = it.unread_count) }
+    }
+    suspend fun conversationByBooking(bookingId: String): ConversationDto? = withAuthRetry { token ->
+        api.conversationByBooking(bookingId, token)
+    }
+    suspend fun conversationMessages(conversationId: String, cursor: String? = null, limit: Int = 30) =
+        withAuthRetry { token ->
+            api.conversationMessages(conversationId, token, cursor = cursor, limit = limit)
+        }
+    suspend fun sendConversationMessage(conversationId: String, text: String) =
+        withAuthRetry { token ->
+            api.sendConversationMessage(conversationId, token, ChatMessageCreateDto(body = text))
+        }
+    suspend fun markConversationMessagesRead(conversationId: String) =
+        withAuthRetry { token ->
+            api.markConversationMessagesReadSlash(conversationId, token)
+        }
 
     suspend fun createBooking(
         dogId: String,
@@ -361,6 +418,11 @@ class AppRepository(
         return list.map { enrichBookingCoordinates(it) }
     }
 
+    suspend fun openBookingsWithCoordinates(): List<BookingDto> {
+        val list = openBookings()
+        return list.map { enrichBookingCoordinates(it) }
+    }
+
     suspend fun enrichBookingCoordinates(b: BookingDto): BookingDto {
         if (b.meeting_latitude != null && b.meeting_longitude != null) return b
         val p = geocodeAddress(
@@ -416,7 +478,29 @@ class AppRepository(
     suspend fun startSession(bookingId: String) = withAuthRetry { api.startSession(it, WalkSessionStartDto(bookingId)) }
     suspend fun sessionByBooking(bookingId: String) = withAuthRetry { api.sessionByBooking(bookingId, it) }
     suspend fun addPoint(sessionId: String, lat: Double, lng: Double) = withAuthRetry { api.addPoint(sessionId, it, TrackPointInDto(lat, lng)) }
-    suspend fun points(sessionId: String) = withAuthRetry { api.sessionPoints(sessionId, it) }
+    suspend fun points(sessionId: String, pageSize: Int = 200): List<TrackPointDto> = withAuthRetry { token ->
+        val out = mutableListOf<TrackPointDto>()
+        var offset = 0
+        var hasMore = true
+        while (hasMore) {
+            val page = api.sessionPoints(sessionId, token, offset = offset, limit = pageSize)
+            out += page.items
+            hasMore = page.has_more
+            offset += page.items.size
+            if (page.items.isEmpty()) break
+        }
+        out
+    }
+    suspend fun routeBySession(sessionId: String, offset: Int = 0, limit: Int = 500) =
+        withAuthRetry { token ->
+            val response = api.sessionRoute(sessionId, token, offset = offset, limit = limit)
+            if (response.isSuccessful) response.body() else throw retrofit2.HttpException(response)
+        }
+    suspend fun routeByBooking(bookingId: String, offset: Int = 0, limit: Int = 500) =
+        withAuthRetry { token ->
+            val response = api.sessionRouteByBooking(bookingId, token, offset = offset, limit = limit)
+            if (response.isSuccessful) response.body() else throw retrofit2.HttpException(response)
+        }
     suspend fun finishSession(sessionId: String) = withAuthRetry { api.finishSession(sessionId, it) }
 
     suspend fun createReview(bookingId: String, rating: Int, comment: String) = withAuthRetry { api.createReview(it, ReviewCreateDto(bookingId, rating, comment)) }

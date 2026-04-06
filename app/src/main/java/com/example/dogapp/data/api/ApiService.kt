@@ -1,11 +1,13 @@
 package com.example.dogapp.data.api
 
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Query
+import retrofit2.Response
 
 interface ApiService {
     @GET("health")
@@ -51,6 +53,21 @@ interface ApiService {
         @Query("max_price") maxPrice: Double? = null,
     ): List<WalkerDto>
 
+    @GET("booking/walkers/me")
+    suspend fun myWalkerProfile(@Header("Authorization") token: String): WalkerDto
+
+    @GET("booking/walkers/{id}")
+    suspend fun walkerById(
+        @retrofit2.http.Path("id") walkerId: String,
+        @Header("Authorization") token: String,
+    ): WalkerDto
+
+    @POST("booking/walkers/me")
+    suspend fun createMyWalkerProfile(
+        @Header("Authorization") token: String,
+        @Body body: WalkerCreateMeDto,
+    ): WalkerDto
+
     @POST("booking/bookings/")
     suspend fun createBooking(@Header("Authorization") token: String, @Body body: BookingCreateDto): BookingDto
 
@@ -59,6 +76,15 @@ interface ApiService {
 
     @GET("booking/bookings/me/walker")
     suspend fun walkerBookings(@Header("Authorization") token: String): List<BookingDto>
+
+    @GET("booking/bookings/open")
+    suspend fun openBookings(@Header("Authorization") token: String): List<BookingDto>
+
+    @POST("booking/bookings/{id}/accept")
+    suspend fun acceptBooking(
+        @retrofit2.http.Path("id") bookingId: String,
+        @Header("Authorization") token: String,
+    ): BookingDto
 
     @PATCH("booking/bookings/{id}/status")
     suspend fun updateBookingStatus(
@@ -80,7 +106,25 @@ interface ApiService {
     suspend fun sessionPoints(
         @retrofit2.http.Path("id") sessionId: String,
         @Header("Authorization") token: String,
-    ): List<TrackPointDto>
+        @Query("offset") offset: Int = 0,
+        @Query("limit") limit: Int = 200,
+    ): TrackPointPageDto
+
+    @GET("tracking/walk-sessions/{id}/route")
+    suspend fun sessionRoute(
+        @retrofit2.http.Path("id") sessionId: String,
+        @Header("Authorization") token: String,
+        @Query("offset") offset: Int = 0,
+        @Query("limit") limit: Int = 500,
+    ): Response<WalkRouteResponseDto>
+
+    @GET("tracking/walk-sessions/by-booking/{id}/route")
+    suspend fun sessionRouteByBooking(
+        @retrofit2.http.Path("id") bookingId: String,
+        @Header("Authorization") token: String,
+        @Query("offset") offset: Int = 0,
+        @Query("limit") limit: Int = 500,
+    ): Response<WalkRouteResponseDto>
 
     @POST("tracking/walk-sessions/{id}/points")
     suspend fun addPoint(
@@ -101,6 +145,12 @@ interface ApiService {
     @GET("review/reviews/me")
     suspend fun myReviews(@Header("Authorization") token: String): List<ReviewDto>
 
+    @GET("review/reviews/walkers/{id}")
+    suspend fun walkerReviews(
+        @retrofit2.http.Path("id") walkerProfileId: String,
+        @Header("Authorization") token: String,
+    ): List<WalkerReviewDto>
+
     @POST("payment/payments/intents")
     suspend fun paymentIntent(@Header("Authorization") token: String, @Body body: PaymentIntentCreateDto): PaymentDto
 
@@ -115,4 +165,68 @@ interface ApiService {
 
     @GET("notification/notifications/")
     suspend fun notifications(@Header("Authorization") token: String): List<NotificationDto>
+
+    @GET("booking/bookings/{id}/applications/")
+    suspend fun bookingApplications(
+        @retrofit2.http.Path("id") bookingId: String,
+        @Header("Authorization") token: String,
+    ): List<BookingApplicationDto>
+
+    @POST("booking/bookings/{id}/applications/")
+    suspend fun createBookingApplication(
+        @retrofit2.http.Path("id") bookingId: String,
+        @Header("Authorization") token: String,
+    ): BookingApplicationDto
+
+    @POST("booking/bookings/{id}/applications/choose")
+    suspend fun chooseBookingApplication(
+        @retrofit2.http.Path("id") bookingId: String,
+        @Header("Authorization") token: String,
+        @Body body: ChooseApplicationBodyDto,
+    ): BookingApplicationDto
+
+    @POST("booking/bookings/{bookingId}/applications/{applicationId}/reject")
+    suspend fun rejectBookingApplication(
+        @retrofit2.http.Path("bookingId") bookingId: String,
+        @retrofit2.http.Path("applicationId") applicationId: String,
+        @Header("Authorization") token: String,
+    ): BookingApplicationDto
+
+    @POST("booking/bookings/{id}/applications/withdraw")
+    suspend fun withdrawBookingApplication(
+        @retrofit2.http.Path("id") bookingId: String,
+        @Header("Authorization") token: String,
+    ): BookingApplicationDto
+
+    @GET("booking/conversations/me/summary")
+    suspend fun conversations(
+        @Header("Authorization") token: String,
+    ): List<ConversationSummaryDto>
+
+    @GET("booking/conversations/by-booking/{id}")
+    suspend fun conversationByBooking(
+        @retrofit2.http.Path("id") bookingId: String,
+        @Header("Authorization") token: String,
+    ): ConversationDto?
+
+    @GET("booking/conversations/{id}/messages")
+    suspend fun conversationMessages(
+        @retrofit2.http.Path("id") conversationId: String,
+        @Header("Authorization") token: String,
+        @Query("cursor") cursor: String? = null,
+        @Query("limit") limit: Int = 30,
+    ): ChatMessagesPageDto
+
+    @POST("booking/conversations/{id}/messages")
+    suspend fun sendConversationMessage(
+        @retrofit2.http.Path("id") conversationId: String,
+        @Header("Authorization") token: String,
+        @Body body: ChatMessageCreateDto,
+    ): ChatMessageDto
+
+    @POST("booking/conversations/{id}/read")
+    suspend fun markConversationMessagesReadSlash(
+        @retrofit2.http.Path("id") conversationId: String,
+        @Header("Authorization") token: String,
+    ): Map<String, Any>?
 }

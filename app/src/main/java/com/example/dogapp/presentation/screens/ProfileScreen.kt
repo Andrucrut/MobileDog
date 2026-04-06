@@ -128,10 +128,13 @@ fun ProfileScreen(
         (a + b).ifBlank { "?" }
     }
     val subtitle = remember(user) {
-        user?.role?.name?.takeIf { it.isNotBlank() }
-            ?: when (user?.role?.key?.lowercase()) {
+        when (user?.role?.key?.lowercase()) {
+            "walker" -> "Выгульщик"
+            "owner" -> "Владелец собаки"
+            else -> user?.role?.name?.takeIf { it.isNotBlank() }
+        } ?: when (user?.role?.key?.lowercase()) {
                 "walker" -> "Выгульщик"
-                "owner" -> "Владелец"
+                "owner" -> "Владелец собаки"
                 else -> "Участник DogApp"
             }
     }
@@ -322,7 +325,11 @@ fun ProfileScreen(
                     ProfileInfoRow(
                         icon = Icons.Outlined.Badge,
                         label = stringResource(R.string.profile_role),
-                        value = user.role?.name?.takeIf { it.isNotBlank() } ?: "—",
+                        value = when (user.role?.key?.lowercase()) {
+                            "walker" -> "Выгульщик"
+                            "owner" -> "Владелец собаки"
+                            else -> user.role?.name?.takeIf { it.isNotBlank() } ?: "—"
+                        },
                     )
                     ProfileInfoRow(
                         icon = Icons.Outlined.Wc,

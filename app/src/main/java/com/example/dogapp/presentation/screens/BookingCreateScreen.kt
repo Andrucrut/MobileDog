@@ -1,16 +1,24 @@
 package com.example.dogapp.presentation.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -22,12 +30,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.dogapp.data.api.DogDto
 import com.example.dogapp.data.api.NominatimPlaceDto
 import com.example.dogapp.data.api.houseNumberFromSuggestion
 import com.example.dogapp.data.api.shortStreetSuggestionLabel
 import com.example.dogapp.data.api.streetNameForField
+import com.example.dogapp.ui.theme.PetProfileColors
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -84,18 +96,39 @@ fun BookingCreateScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(PetProfileColors.ScreenBg)
             .verticalScroll(scroll)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+            .padding(0.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
-        Text("Создание заявки")
-        Text("Питомец: ${dog.name}")
-        Text("Страна: Россия", style = MaterialTheme.typography.bodyMedium)
-        Text("Город", style = MaterialTheme.typography.labelLarge)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(134.dp)
+                .background(Brush.horizontalGradient(listOf(PetProfileColors.CardTeal, PetProfileColors.CardTealDark)))
+                .padding(16.dp),
         ) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("Создание заявки", style = MaterialTheme.typography.headlineSmall, color = Color.White, fontWeight = FontWeight.Bold)
+                Text("Питомец: ${dog.name}", color = Color.White.copy(alpha = 0.9f))
+            }
+        }
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp)
+                .padding(top = 10.dp, bottom = 16.dp),
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+        ) {
+            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("Страна: Россия", style = MaterialTheme.typography.bodyMedium)
+                Text("Город", style = MaterialTheme.typography.labelLarge)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
             FilterChip(
                 selected = selectedCity.value == CITY_SPB,
                 onClick = {
@@ -118,103 +151,106 @@ fun BookingCreateScreen(
                 },
                 label = { Text(CITY_MSK) },
             )
-        }
-
-        OutlinedTextField(
-            value = street.value,
-            onValueChange = {
-                street.value = it
-                streetChosenFromSuggestions.value = false
-                meetingLat.value = null
-                meetingLng.value = null
-                streetSuggestJob.value?.cancel()
-                val c = selectedCity.value
-                if (c == null) {
-                    streetSuggestions.value = emptyList()
-                } else {
-                    streetSuggestJob.value = scope.launch {
-                        delay(SUGGEST_DEBOUNCE_MS)
-                        if (it.length < MIN_STREET_QUERY_LEN) {
-                            streetSuggestions.value = emptyList()
-                            return@launch
-                        }
-                        val items = runCatching {
-                            onSuggestStreet("Россия", c, it)
-                        }.getOrDefault(emptyList())
-                        streetSuggestions.value = items
-                    }
                 }
-            },
-            label = { Text("Улица") },
-            supportingText = {
-                Text(
-                    if (canSearchStreet) {
-                        "Введите название и выберите улицу из списка"
-                    } else {
-                        "Сначала выберите город: Москва или Санкт-Петербург"
+
+                OutlinedTextField(
+                    value = street.value,
+                    onValueChange = {
+                        street.value = it
+                        streetChosenFromSuggestions.value = false
+                        meetingLat.value = null
+                        meetingLng.value = null
+                        streetSuggestJob.value?.cancel()
+                        val c = selectedCity.value
+                        if (c == null) {
+                            streetSuggestions.value = emptyList()
+                        } else {
+                            streetSuggestJob.value = scope.launch {
+                                delay(SUGGEST_DEBOUNCE_MS)
+                                if (it.length < MIN_STREET_QUERY_LEN) {
+                                    streetSuggestions.value = emptyList()
+                                    return@launch
+                                }
+                                val items = runCatching {
+                                    onSuggestStreet("Россия", c, it)
+                                }.getOrDefault(emptyList())
+                                streetSuggestions.value = items
+                            }
+                        }
+                    },
+                    label = { Text("Улица") },
+                    supportingText = {
+                        Text(
+                            if (canSearchStreet) {
+                                "Введите название и выберите улицу из списка"
+                            } else {
+                                "Сначала выберите город: Москва или Санкт-Петербург"
+                            },
+                        )
+                    },
+                    enabled = canSearchStreet,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                AddressSuggestionList(
+                    suggestions = if (canSearchStreet) streetSuggestions.value else emptyList(),
+                    onPick = { item ->
+                        street.value = item.streetNameForField()
+                        item.houseNumberFromSuggestion()?.let { house.value = it }
+                        val la = item.lat.toDoubleOrNull()
+                        val lo = item.lon.toDoubleOrNull()
+                        meetingLat.value = la
+                        meetingLng.value = lo
+                        streetChosenFromSuggestions.value = true
+                        streetSuggestions.value = emptyList()
                     },
                 )
-            },
-            enabled = canSearchStreet,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        AddressSuggestionList(
-            suggestions = if (canSearchStreet) streetSuggestions.value else emptyList(),
-            onPick = { item ->
-                street.value = item.streetNameForField()
-                item.houseNumberFromSuggestion()?.let { house.value = it }
-                val la = item.lat.toDoubleOrNull()
-                val lo = item.lon.toDoubleOrNull()
-                meetingLat.value = la
-                meetingLng.value = lo
-                streetChosenFromSuggestions.value = true
-                streetSuggestions.value = emptyList()
-            },
-        )
 
-        OutlinedTextField(value = house.value, onValueChange = { house.value = it }, label = { Text("Дом") }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = apartment.value, onValueChange = { apartment.value = it }, label = { Text("Квартира") }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = desiredPrice.value, onValueChange = { desiredPrice.value = it }, label = { Text("Цена") }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = duration.value, onValueChange = { duration.value = it }, label = { Text("Длительность (мин)") }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = extra.value, onValueChange = { extra.value = it }, label = { Text("Параметры") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = house.value, onValueChange = { house.value = it }, label = { Text("Дом") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = apartment.value, onValueChange = { apartment.value = it }, label = { Text("Квартира") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = desiredPrice.value, onValueChange = { desiredPrice.value = it }, label = { Text("Желаемая цена") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = duration.value, onValueChange = { duration.value = it }, label = { Text("Длительность (мин)") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = extra.value, onValueChange = { extra.value = it }, label = { Text("Параметры") }, modifier = Modifier.fillMaxWidth())
 
-        formError.value?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                formError.value?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 
-        Button(
-            onClick = {
-                if (submitting.value) return@Button
-                formError.value = null
-                val c = selectedCity.value
-                if (c == null) {
-                    formError.value = "Выберите город"
-                    return@Button
+                Button(
+                    onClick = {
+                        if (submitting.value) return@Button
+                        formError.value = null
+                        val c = selectedCity.value
+                        if (c == null) {
+                            formError.value = "Выберите город"
+                            return@Button
+                        }
+                        if (!streetChosenFromSuggestions.value || meetingLat.value == null || meetingLng.value == null) {
+                            formError.value = "Выберите улицу из списка"
+                            return@Button
+                        }
+                        submitting.value = true
+                        scope.launch {
+                            onCreate(
+                                dog.id,
+                                duration.value.toIntOrNull() ?: 60,
+                                country.value,
+                                c,
+                                street.value,
+                                house.value,
+                                apartment.value,
+                                meetingLat.value,
+                                meetingLng.value,
+                                desiredPrice.value,
+                                extra.value,
+                            )
+                            submitting.value = false
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    enabled = !submitting.value,
+                    colors = ButtonDefaults.buttonColors(containerColor = PetProfileColors.CardTeal, contentColor = Color.White),
+                ) {
+                    Text(if (submitting.value) "Создание..." else "Создать заявку", fontWeight = FontWeight.SemiBold)
                 }
-                if (!streetChosenFromSuggestions.value || meetingLat.value == null || meetingLng.value == null) {
-                    formError.value = "Выберите улицу из списка"
-                    return@Button
-                }
-                submitting.value = true
-                scope.launch {
-                    onCreate(
-                        dog.id,
-                        duration.value.toIntOrNull() ?: 60,
-                        country.value,
-                        c,
-                        street.value,
-                        house.value,
-                        apartment.value,
-                        meetingLat.value,
-                        meetingLng.value,
-                        desiredPrice.value,
-                        extra.value,
-                    )
-                    submitting.value = false
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !submitting.value,
-        ) {
-            Text(if (submitting.value) "Создание..." else "Создать заявку")
+            }
         }
     }
 }
@@ -233,12 +269,12 @@ private fun AddressSuggestionList(
             .fillMaxWidth()
             .heightIn(max = 280.dp),
     ) {
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp),
         ) {
-            suggestions.forEach { item ->
+            items(items = suggestions, key = { it.lat + it.lon + it.display_name }) { item ->
                 TextButton(
                     onClick = { onPick(item) },
                     modifier = Modifier.fillMaxWidth(),

@@ -39,9 +39,6 @@ import org.osmdroid.views.overlay.Polyline
 @Composable
 fun MapScreen(
     state: MainState,
-    onStartTracking: () -> Unit,
-    onAddFakePoint: () -> Unit,
-    onFinishTracking: () -> Unit,
     onOpenBookingDetail: (String) -> Unit,
 ) {
     val context = LocalContext.current
@@ -52,7 +49,9 @@ fun MapScreen(
     val zoomIn = remember { mutableStateOf(false) }
     val zoomOut = remember { mutableStateOf(false) }
 
-    val bookingsOnMap = state.ownerBookings.filter {
+    val isWalker = state.user?.role?.key.equals("walker", ignoreCase = true)
+    val mapBookings = if (isWalker) state.walkerBookings else state.ownerBookings
+    val bookingsOnMap = mapBookings.filter {
         it.meeting_latitude != null && it.meeting_longitude != null
     }
     val groupedByLocation = bookingsOnMap.groupBy { b ->

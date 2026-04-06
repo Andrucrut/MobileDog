@@ -23,6 +23,7 @@ data class MainState(
     val authorized: Boolean = false,
     val loading: Boolean = false,
     val error: String? = null,
+    val notice: String? = null,
     val user: UserDto? = null,
     val dogs: List<DogDto> = emptyList(),
     val walkers: List<WalkerDto> = emptyList(),
@@ -32,7 +33,16 @@ data class MainState(
     val reviews: List<ReviewDto> = emptyList(),
     val payments: List<PaymentDto> = emptyList(),
     val activeSession: WalkSessionDto? = null,
+    val activeWalkBookingId: String? = null,
     val trackPoints: List<TrackPointDto> = emptyList(),
+    val routeByBooking: Map<String, WalkRouteResponseDto?> = emptyMap(),
+    val applicationsByBooking: Map<String, List<BookingApplicationDto>> = emptyMap(),
+    val walkerProfileById: Map<String, WalkerDto> = emptyMap(),
+    val walkerReviewsById: Map<String, List<WalkerReviewDto>> = emptyMap(),
+    val conversations: List<ConversationDto> = emptyList(),
+    val chatMessagesByConversation: Map<String, List<ChatMessageDto>> = emptyMap(),
+    val chatCursorByConversation: Map<String, String?> = emptyMap(),
+    val chatHasMoreByConversation: Map<String, Boolean> = emptyMap(),
     val darkThemeEnabled: Boolean = false,
     val compactUiEnabled: Boolean = false,
     val hideNotificationsPreview: Boolean = false,
@@ -101,13 +111,23 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
     fun loadAll() = viewModelScope.launch {
         runCatchingLoading {
             val me = repository.me()
+            if (me.role?.key.equals("walker", ignoreCase = true)) {
+                runCatching { repository.ensureWalkerProfileExistsForCurrentUser() }
+            }
             val dogs = repository.dogs()
             val walkers = repository.walkers(59.9343, 30.3351)
             val ownerBookings = repository.ownerBookingsWithCoordinates()
-            val walkerBookings = repository.walkerBookings()
+            val walkerBookings = if (me.role?.key.equals("walker", ignoreCase = true)) {
+                val open = repository.openBookingsWithCoordinates()
+                val mine = repository.walkerBookings().map { repository.enrichBookingCoordinates(it) }
+                (open + mine).distinctBy { it.id }
+            } else {
+                repository.walkerBookings()
+            }
             val notifications = repository.notifications()
             val reviews = repository.reviews()
             val payments = repository.payments()
+            val conversations = runCatching { repository.conversations() }.getOrDefault(emptyList())
             _state.value = _state.value.copy(
                 user = me,
                 dogs = dogs,
@@ -118,6 +138,7 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
                 reviews = reviews,
                 payments = payments,
                 dogLocalPhotos = repository.dogPhotoUriMap(),
+                conversations = conversations,
             )
         }
     }
@@ -234,35 +255,207 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
                 behaviorNotes = behaviorNotes,
                 medicalNotes = medicalNotes,
             )
-            _state.value = _state.value.copy(dogs = repository.dogs())
+            _state.value = _state.value.copy(
+                dogs = repository.dogs(),
+                dogLocalPhotos = repository.dogPhotoUriMap(),
+            )
+        }
+    }
+
+    fun applyAsWalker(bookingId: String) = viewModelScope.launch {
+        runCatchingLoading {
+            repository.acceptBooking(bookingId)
+            _state.value = _state.value.copy(
+                walkerBookings = (repository.openBookingsWithCoordinates() + repository.walkerBookings().map { repository.enrichBookingCoordinates(it) }).distinctBy { it.id },
+                ownerBookings = repository.ownerBookingsWithCoordinates(),
+            )
+        }
+    }
+
+    fun loadApplications(bookingId: String) = viewModelScope.launch {
+        runCatchingLoading {
+            val apps = repository.bookingApplications(bookingId)
+            _state.value = _state.value.copy(applicationsByBooking = _state.value.applicationsByBooking + (bookingId to apps))
+        }
+    }
+
+    fun submitApplication(bookingId: String, message: String?) = viewModelScope.launch {
+        runCatchingLoading {
+            val created = repository.createBookingApplication(bookingId, message)
+            val apps = runCatching { repository.bookingApplications(bookingId) }
+                .getOrElse {
+                    val existing = _state.value.applicationsByBooking[bookingId].orEmpty()
+                    (existing + created).distinctBy { it.id }
+                }
+            _state.value = _state.value.copy(
+                applicationsByBooking = _state.value.applicationsByBooking + (bookingId to apps),
+                notice = "Отклик отправлен",
+            )
+            runCatching { _state.value = _state.value.copy(conversations = repository.conversations()) }
+        }
+    }
+
+    fun withdrawApplication(bookingId: String, applicationId: String) = viewModelScope.launch {
+        runCatchingLoading {
+            val withdrawn = repository.withdrawBookingApplication(bookingId)
+            val apps = runCatching { repository.bookingApplications(bookingId) }
+                .getOrElse {
+                    val existing = _state.value.applicationsByBooking[bookingId].orEmpty()
+                    existing.map { app ->
+                        if (app.id == withdrawn.id) withdrawn else app
+                    }
+                }
+            _state.value = _state.value.copy(applicationsByBooking = _state.value.applicationsByBooking + (bookingId to apps))
+        }
+    }
+
+    fun chooseApplication(
+        bookingId: String,
+        applicationId: String,
+        onSuccessConversationId: (String?) -> Unit = {},
+    ) = viewModelScope.launch {
+        runCatchingLoading {
+            val chosen = repository.chooseBookingApplication(bookingId, applicationId)
+            _state.value = _state.value.copy(
+                ownerBookings = repository.ownerBookingsWithCoordinates(),
+                walkerBookings = (repository.openBookingsWithCoordinates() + repository.walkerBookings().map { repository.enrichBookingCoordinates(it) }).distinctBy { it.id },
+                notice = "Заявка принята",
+            )
+            val apps = runCatching { repository.bookingApplications(bookingId) }.getOrDefault(emptyList())
+            val conv = runCatching { repository.conversations() }.getOrDefault(_state.value.conversations)
+            _state.value = _state.value.copy(
+                applicationsByBooking = _state.value.applicationsByBooking + (bookingId to apps),
+                conversations = conv,
+                chatCursorByConversation = if (chosen.conversation_id != null) {
+                    _state.value.chatCursorByConversation + (chosen.conversation_id to null)
+                } else {
+                    _state.value.chatCursorByConversation
+                },
+            )
+            onSuccessConversationId(chosen.conversation_id)
+        }
+    }
+
+    fun rejectApplication(bookingId: String, applicationId: String) = viewModelScope.launch {
+        runCatchingLoading {
+            val rejected = repository.rejectBookingApplication(bookingId, applicationId)
+            val current = _state.value.applicationsByBooking[bookingId].orEmpty()
+            val merged = if (current.isEmpty()) {
+                listOf(rejected)
+            } else {
+                current.map { if (it.id == rejected.id) rejected else it }
+            }
+            _state.value = _state.value.copy(
+                applicationsByBooking = _state.value.applicationsByBooking + (bookingId to merged),
+                notice = "Заявка отклонена",
+                error = null,
+            )
+        }
+    }
+
+    fun loadWalkerProfile(walkerId: String) = viewModelScope.launch {
+        runCatchingLoading {
+            val profile = repository.walkerById(walkerId)
+            val reviews = runCatching { repository.walkerReviews(walkerId) }.getOrDefault(emptyList())
+            _state.value = _state.value.copy(
+                walkerProfileById = _state.value.walkerProfileById + (walkerId to profile),
+                walkerReviewsById = _state.value.walkerReviewsById + (walkerId to reviews),
+            )
+        }
+    }
+
+    fun refreshConversations() = viewModelScope.launch {
+        runCatchingLoading {
+            _state.value = _state.value.copy(conversations = repository.conversations())
+        }
+    }
+
+    fun loadChatMessages(conversationId: String, reset: Boolean = false) = viewModelScope.launch {
+        runCatchingLoading {
+            val cursor = if (reset) null else _state.value.chatCursorByConversation[conversationId]
+            val page = repository.conversationMessages(conversationId, cursor = cursor, limit = 30)
+            val old = if (reset) emptyList() else _state.value.chatMessagesByConversation[conversationId].orEmpty()
+            _state.value = _state.value.copy(
+                chatMessagesByConversation = _state.value.chatMessagesByConversation + (conversationId to (old + page.items)),
+                chatCursorByConversation = _state.value.chatCursorByConversation + (conversationId to page.next_cursor),
+                chatHasMoreByConversation = _state.value.chatHasMoreByConversation + (conversationId to page.has_more),
+            )
+        }
+    }
+
+    fun sendChatMessage(conversationId: String, text: String) = viewModelScope.launch {
+        runCatchingLoading {
+            val msg = repository.sendConversationMessage(conversationId, text)
+            val old = _state.value.chatMessagesByConversation[conversationId].orEmpty()
+            _state.value = _state.value.copy(chatMessagesByConversation = _state.value.chatMessagesByConversation + (conversationId to (old + msg)))
+            runCatching { _state.value = _state.value.copy(conversations = repository.conversations()) }
+        }
+    }
+
+    fun markChatRead(conversationId: String) = viewModelScope.launch {
+        runCatchingLoading {
+            repository.markConversationMessagesRead(conversationId)
+            runCatching { _state.value = _state.value.copy(conversations = repository.conversations()) }
+        }
+    }
+
+    fun clearFeedback() {
+        _state.value = _state.value.copy(error = null, notice = null)
+    }
+
+    fun loadRouteByBooking(bookingId: String) = viewModelScope.launch {
+        runCatchingLoading {
+            val route = repository.routeByBooking(bookingId, offset = 0, limit = 500)
+            _state.value = _state.value.copy(routeByBooking = _state.value.routeByBooking + (bookingId to route))
+        }
+    }
+
+    fun startTracking(bookingId: String) = viewModelScope.launch {
+        runCatchingLoading {
+            val existing = repository.sessionByBooking(bookingId)
+            val session = existing ?: repository.startSession(bookingId)
+            val points = repository.points(session.id)
+            _state.value = _state.value.copy(
+                activeSession = session,
+                activeWalkBookingId = bookingId,
+                trackPoints = points,
+            )
+            loadRouteByBooking(bookingId)
         }
     }
 
     fun startTracking() = viewModelScope.launch {
+        val booking = _state.value.walkerBookings.firstOrNull { it.status == "CONFIRMED" || it.status == "IN_PROGRESS" }
+            ?: return@launch
+        startTracking(booking.id)
+    }
+
+    fun addTrackPoint(lat: Double, lng: Double) = viewModelScope.launch {
         runCatchingLoading {
-            val booking = _state.value.walkerBookings.firstOrNull { it.status == "CONFIRMED" || it.status == "IN_PROGRESS" }
-                ?: error("Нет подтвержденной прогулки для старта")
-            val session = repository.startSession(booking.id)
-            _state.value = _state.value.copy(activeSession = session, trackPoints = repository.points(session.id))
+            val s = _state.value.activeSession ?: error("Сессия не запущена")
+            repository.addPoint(s.id, lat, lng)
+            _state.value = _state.value.copy(trackPoints = repository.points(s.id))
+            _state.value.activeWalkBookingId?.let { loadRouteByBooking(it) }
         }
     }
 
     fun addFakePoint() = viewModelScope.launch {
-        runCatchingLoading {
-            val s = _state.value.activeSession ?: error("Сессия не запущена")
-            val baseLat = 59.9343
-            val baseLng = 30.3351
-            repository.addPoint(s.id, baseLat + Math.random() / 100, baseLng + Math.random() / 100)
-            _state.value = _state.value.copy(trackPoints = repository.points(s.id))
-        }
+        val baseLat = 59.9343
+        val baseLng = 30.3351
+        addTrackPoint(baseLat + Math.random() / 100, baseLng + Math.random() / 100)
     }
 
     fun finishTracking() = viewModelScope.launch {
         runCatchingLoading {
             val s = _state.value.activeSession ?: error("Сессия не запущена")
             repository.finishSession(s.id)
-            _state.value = _state.value.copy(activeSession = null, trackPoints = emptyList())
+            val finishedBookingId = _state.value.activeWalkBookingId
+            if (finishedBookingId != null) {
+                runCatching { repository.updateBookingStatus(finishedBookingId, "COMPLETED") }
+            }
+            _state.value = _state.value.copy(activeSession = null, activeWalkBookingId = null, trackPoints = emptyList())
             loadAll()
+            if (finishedBookingId != null) loadRouteByBooking(finishedBookingId)
         }
     }
 
@@ -319,7 +512,7 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
     }
 
     private suspend fun runCatchingLoading(block: suspend () -> Unit) {
-        _state.value = _state.value.copy(loading = true, error = null)
+        _state.value = _state.value.copy(loading = true, error = null, notice = null)
         runCatching { block() }
             .onFailure { throwable ->
                 if (throwable is HttpException && throwable.code() == 401) {
@@ -332,7 +525,7 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
                         error = humanError(throwable),
                     )
                 } else {
-                    _state.value = _state.value.copy(error = humanError(throwable))
+                    _state.value = _state.value.copy(error = humanError(throwable), notice = null)
                 }
             }
         _state.value = _state.value.copy(loading = false)

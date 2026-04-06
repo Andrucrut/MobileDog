@@ -1,5 +1,7 @@
 package com.example.dogapp.data.api
 
+import com.google.gson.annotations.SerializedName
+
 data class TokenResponseDto(
     val access_token: String,
     val refresh_token: String,
@@ -116,6 +118,15 @@ data class WalkerDto(
     val is_available: Boolean,
     val rating: Double,
     val reviews_count: Int,
+)
+
+data class WalkerCreateMeDto(
+    val bio: String? = null,
+    val experience_years: Int? = 0,
+    val price_per_hour: Double,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val service_radius_km: Double = 5.0,
 )
 
 data class BookingDto(
@@ -249,10 +260,42 @@ data class TrackPointDto(
     val recorded_at: String,
 )
 
+data class TrackPointPageDto(
+    val items: List<TrackPointDto>,
+    val total: Int,
+    val offset: Int,
+    val limit: Int,
+    val has_more: Boolean,
+)
+
 data class TrackPointInDto(
     val latitude: Double,
     val longitude: Double,
     val accuracy_m: Int? = null,
+)
+
+data class RouteSummaryBBoxDto(
+    val min_lat: Double,
+    val min_lng: Double,
+    val max_lat: Double,
+    val max_lng: Double,
+)
+
+data class WalkRouteSummaryDto(
+    val points_count: Int,
+    val total_points: Int? = null,
+    val returned_points: Int? = null,
+    val offset: Int? = null,
+    val limit: Int? = null,
+    val has_more: Boolean? = null,
+    val total_distance_m: Double? = null,
+    val duration_seconds: Int? = null,
+    val bbox: RouteSummaryBBoxDto? = null,
+)
+
+data class WalkRouteResponseDto(
+    val points: List<TrackPointDto>,
+    val summary: WalkRouteSummaryDto,
 )
 
 data class ReviewDto(
@@ -260,6 +303,14 @@ data class ReviewDto(
     val booking_id: String,
     val rating: Int,
     val comment: String? = null,
+)
+
+data class WalkerReviewDto(
+    val id: String,
+    val booking_id: String,
+    val rating: Int,
+    val comment: String? = null,
+    val created_at: String? = null,
 )
 
 data class ReviewCreateDto(
@@ -284,4 +335,67 @@ data class NotificationDto(
     val body: String,
     val created_at: String,
     val read_at: String? = null,
+)
+
+data class BookingApplicationDto(
+    val id: String,
+    val booking_id: String,
+    val walker_id: String? = null,
+    val walker_user_id: String? = null,
+    val walker_first_name: String? = null,
+    val walker_last_name: String? = null,
+    val walker_avatar: String? = null,
+    val walker_city: String? = null,
+    val status: String? = null,
+    val message: String? = null,
+    val created_at: String? = null,
+    val walker_rating: Double? = null,
+    val walker_reviews_count: Int? = null,
+    val walker_price_per_hour: Double? = null,
+    val conversation_id: String? = null,
+)
+
+data class BookingApplicationCreateDto(
+    val message: String? = null,
+)
+
+data class ChooseApplicationBodyDto(
+    val application_id: String,
+)
+
+data class ConversationDto(
+    val id: String,
+    val booking_id: String? = null,
+    val owner_id: String? = null,
+    val walker_user_id: String? = null,
+    val last_message: String? = null,
+    val unread_count: Int? = null,
+    val updated_at: String? = null,
+)
+
+data class ConversationSummaryDto(
+    val conversation: ConversationDto,
+    val last_message: ChatMessageDto? = null,
+    val unread_count: Int = 0,
+)
+
+data class ChatMessageDto(
+    val id: String,
+    val conversation_id: String,
+    val sender_user_id: String? = null,
+    @SerializedName("body")
+    val body: String? = null,
+    val text: String? = null,
+    val created_at: String? = null,
+    val read_at: String? = null,
+)
+
+data class ChatMessageCreateDto(
+    val body: String,
+)
+
+data class ChatMessagesPageDto(
+    val items: List<ChatMessageDto>,
+    val next_cursor: String? = null,
+    val has_more: Boolean = false,
 )

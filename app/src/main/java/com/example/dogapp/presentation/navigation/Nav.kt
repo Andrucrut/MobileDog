@@ -38,13 +38,22 @@ fun DogAppRoot() {
 
     val state by vm.state.collectAsState()
     val navController = rememberNavController()
-    val tabs = remember {
-        listOf(
-            BottomTab("map", "Карта"),
-            BottomTab("bookings", "Бронь"),
-            BottomTab("dogs", "Питомцы"),
-            BottomTab("profile", "Профиль"),
-        )
+    val isWalker = state.user?.role?.key.equals("walker", ignoreCase = true)
+    val tabs = remember(isWalker) {
+        if (isWalker) {
+            listOf(
+                BottomTab("map", "Карта"),
+                BottomTab("bookings", "Заявки"),
+                BottomTab("profile", "Профиль"),
+            )
+        } else {
+            listOf(
+                BottomTab("map", "Карта"),
+                BottomTab("bookings", "Заявки"),
+                BottomTab("dogs", "Питомцы"),
+                BottomTab("profile", "Профиль"),
+            )
+        }
     }
 
     DogAppTheme(darkTheme = state.darkThemeEnabled, dynamicColor = false) {
@@ -101,24 +110,241 @@ fun DogAppRoot() {
                 composable("map") {
                     MapScreen(
                         state = state,
-                        onStartTracking = vm::startTracking,
-                        onAddFakePoint = vm::addFakePoint,
-                        onFinishTracking = vm::finishTracking,
                         onOpenBookingDetail = { id -> navController.navigate("booking/$id") },
                     )
                 }
                 composable("booking/{id}") { entry ->
                     val bookingId = entry.arguments?.getString("id") ?: return@composable
-                    val booking = state.ownerBookings.firstOrNull { it.id == bookingId }
+                    val booking = (state.ownerBookings + state.walkerBookings).firstOrNull { it.id == bookingId }
                     val dogName = booking?.let { b -> state.dogs.firstOrNull { it.id == b.dog_id }?.name }
+                    val isWalker = state.user?.role?.key.equals("walker", ignoreCase = true)
+                    val isOwner = state.user?.role?.key.equals("owner", ignoreCase = true)
+                    val conversation = state.conversations.firstOrNull { it.booking_id == bookingId }
+                    LaunchedEffect(bookingId, isOwner) {
+                        if (isOwner) vm.loadApplications(bookingId)
+                    }
+                    LaunchedEffect(bookingId, booking?.status) {
+                        val shouldLoadRoute = booking?.status?.uppercase() in setOf("CONFIRMED", "IN_PROGRESS", "COMPLETED")
+                        if (shouldLoadRoute) vm.loadRouteByBooking(bookingId)
+                    }
                     BookingDetailScreen(
                         booking = booking,
                         dogName = dogName,
+                        route = state.routeByBooking[bookingId],
+                        applications = state.applicationsByBooking[bookingId].orEmpty(),
+                        isWalker = isWalker,
+                        isOwner = isOwner,
+                        hasConversation = conversation != null,
+                        canOpenWalk = state.user?.role?.key.equals("walker", ignoreCase = true),
+                        feedbackText = state.error ?: state.notice,
+                        feedbackIsError = state.error != null,
                         onBack = { navController.popBackStack() },
+                        onRefreshRoute = { vm.loadRouteByBooking(bookingId) },
+                        onOpenWalk = { navController.navigate("walk/$bookingId") },
+                        onRefreshApplications = { vm.loadApplications(bookingId) },
+                        onSubmitApplication = { msg -> vm.submitApplication(bookingId, msg) },
+                        onWithdrawApplication = { appId -> vm.withdrawApplication(bookingId, appId) },
+                        onOpenApplication = { appId ->
+                            navController.navigate("booking/$bookingId/application/$appId")
+                        },
+                        onOpenChat = {
+                            val c = state.conversations.firstOrNull { it.booking_id == bookingId }
+                            if (c != null) {
+                                navController.navigate("chat/${c.id}")
+                            } else {
+                                vm.refreshConversations()
+                            }
+                        },
                     )
                 }
-                composable("bookings") { BookingScreen(state, vm::loadAll, vm::confirmAndPay, vm::reviewBooking) }
-                composable("dogs") { DogsScreen(state, { id -> navController.navigate("dog/$id") }, { navController.navigate("dog/add") }) }
+                composable("bookings") {
+                    BookingScreen(
+                        state = state,
+                        onRefresh = vm::loadAll,
+                        onPay = vm::confirmAndPay,
+                        onReview = vm::reviewBooking,
+                        onAcceptAsWalker = vm::applyAsWalker,
+                        onOpenBooking = { id -> navController.navigate("booking/$id") },
+                        onOpenWalk = { id -> navController.navigate("walk/$id") },
+                    )
+                }
+                composable("walk/{bookingId}") { entry ->
+                    val bookingId = entry.arguments?.getString("bookingId") ?: return@composable
+                    val booking = state.walkerBookings.firstOrNull { it.id == bookingId }
+                        ?: state.ownerBookings.firstOrNull { it.id == bookingId }
+                    val allowWalk = booking?.status?.uppercase() == "CONFIRMED" || booking?.status?.uppercase() == "IN_PROGRESS"
+                    if (!allowWalk) {
+                        BookingDetailScreen(
+                            booking = booking,
+                            dogName = booking?.let { b -> state.dogs.firstOrNull { it.id == b.dog_id }?.name },
+                            route = state.routeByBooking[bookingId],
+                            applications = state.applicationsByBooking[bookingId].orEmpty(),
+                            isWalker = state.user?.role?.key.equals("walker", true),
+                            isOwner = state.user?.role?.key.equals("owner", true),
+                            hasConversation = state.conversations.any { it.booking_id == bookingId },
+                            canOpenWalk = false,
+                            feedbackText = state.error ?: state.notice,
+                            feedbackIsError = state.error != null,
+                            onBack = { navController.popBackStack() },
+                            onRefreshRoute = { vm.loadRouteByBooking(bookingId) },
+                            onOpenWalk = {},
+                            onRefreshApplications = { vm.loadApplications(bookingId) },
+                            onSubmitApplication = { msg -> vm.submitApplication(bookingId, msg) },
+                            onWithdrawApplication = { appId -> vm.withdrawApplication(bookingId, appId) },
+                            onOpenApplication = { appId ->
+                                navController.navigate("booking/$bookingId/application/$appId")
+                            },
+                            onOpenChat = {
+                                val c = state.conversations.firstOrNull { it.booking_id == bookingId }
+                                if (c != null) navController.navigate("chat/${c.id}")
+                            },
+                        )
+                        return@composable
+                    }
+                    WalkSessionScreen(
+                        booking = booking,
+                        route = state.routeByBooking[bookingId],
+                        trackPoints = state.trackPoints,
+                        activeForBooking = state.activeSession != null && state.activeWalkBookingId == bookingId,
+                        loading = state.loading,
+                        onBack = { navController.popBackStack() },
+                        onStartOrResume = { vm.startTracking(bookingId) },
+                        onAddPoint = { lat, lng -> vm.addTrackPoint(lat, lng) },
+                        onAddFakePoint = vm::addFakePoint,
+                        onFinish = vm::finishTracking,
+                        onRefreshRoute = { vm.loadRouteByBooking(bookingId) },
+                    )
+                }
+                composable("chat/{conversationId}") { entry ->
+                    val conversationId = entry.arguments?.getString("conversationId") ?: return@composable
+                    LaunchedEffect(conversationId) {
+                        vm.loadChatMessages(conversationId, reset = true)
+                        vm.markChatRead(conversationId)
+                    }
+                    val convo = state.conversations.firstOrNull { it.id == conversationId }
+                    val peerTitle = if (state.user?.id != null && convo != null) {
+                        when (state.user?.id) {
+                            convo.owner_id -> {
+                                val app = state.applicationsByBooking[convo.booking_id].orEmpty()
+                                    .firstOrNull { it.walker_user_id == convo.walker_user_id }
+                                listOfNotNull(app?.walker_first_name, app?.walker_last_name).joinToString(" ").ifBlank { "Собеседник" }
+                            }
+                            convo.walker_user_id -> "Владелец"
+                            else -> "Собеседник"
+                        }
+                    } else "Собеседник"
+                    ChatScreen(
+                        conversationId = conversationId,
+                        currentUserId = state.user?.id,
+                        peerTitle = peerTitle,
+                        messages = state.chatMessagesByConversation[conversationId].orEmpty(),
+                        hasMore = state.chatHasMoreByConversation[conversationId] ?: false,
+                        loading = state.loading,
+                        onBack = { navController.popBackStack() },
+                        onRefresh = {
+                            vm.loadChatMessages(conversationId, reset = true)
+                            vm.markChatRead(conversationId)
+                        },
+                        onLoadMore = { vm.loadChatMessages(conversationId, reset = false) },
+                        onSend = { text -> vm.sendChatMessage(conversationId, text) },
+                    )
+                }
+                composable("booking/{bookingId}/application/{applicationId}") { entry ->
+                    val bookingId = entry.arguments?.getString("bookingId") ?: return@composable
+                    val applicationId = entry.arguments?.getString("applicationId") ?: return@composable
+                    val application = state.applicationsByBooking[bookingId].orEmpty().firstOrNull { it.id == applicationId }
+                    val walkerId = application?.walker_id
+                    val walker = state.walkerProfileById[walkerId]
+                    LaunchedEffect(walkerId) {
+                        if (!walkerId.isNullOrBlank()) vm.loadWalkerProfile(walkerId)
+                    }
+                    WalkerApplicationScreen(
+                        walker = walker,
+                        application = application,
+                        reviews = walkerId?.let { state.walkerReviewsById[it].orEmpty() }.orEmpty(),
+                        onBack = { navController.popBackStack() },
+                        onReject = {
+                            vm.rejectApplication(bookingId, applicationId)
+                            navController.popBackStack()
+                        },
+                        onAccept = {
+                            vm.chooseApplication(bookingId, applicationId) { conversationId ->
+                                val cid = conversationId
+                                if (!cid.isNullOrBlank()) {
+                                    navController.navigate("chat/$cid")
+                                } else {
+                                    navController.navigate("chat-by-booking/$bookingId")
+                                }
+                            }
+                        },
+                    )
+                }
+                composable("chat-by-booking/{bookingId}") { entry ->
+                    val bookingId = entry.arguments?.getString("bookingId") ?: return@composable
+                    LaunchedEffect(bookingId) { vm.refreshConversations() }
+                    val conversation = state.conversations.firstOrNull { it.booking_id == bookingId }
+                    if (conversation == null) {
+                        BookingDetailScreen(
+                            booking = (state.ownerBookings + state.walkerBookings).firstOrNull { it.id == bookingId },
+                            dogName = (state.ownerBookings + state.walkerBookings).firstOrNull { it.id == bookingId }?.let { b ->
+                                state.dogs.firstOrNull { it.id == b.dog_id }?.name
+                            },
+                            route = state.routeByBooking[bookingId],
+                            applications = state.applicationsByBooking[bookingId].orEmpty(),
+                            isWalker = state.user?.role?.key.equals("walker", true),
+                            isOwner = state.user?.role?.key.equals("owner", true),
+                            hasConversation = false,
+                            canOpenWalk = false,
+                            feedbackText = "Чат создается, попробуйте через пару секунд",
+                            feedbackIsError = false,
+                            onBack = { navController.popBackStack() },
+                            onRefreshRoute = { vm.loadRouteByBooking(bookingId) },
+                            onOpenWalk = {},
+                            onRefreshApplications = { vm.loadApplications(bookingId) },
+                            onSubmitApplication = { msg -> vm.submitApplication(bookingId, msg) },
+                            onWithdrawApplication = { appId -> vm.withdrawApplication(bookingId, appId) },
+                            onOpenApplication = { appId ->
+                                navController.navigate("booking/$bookingId/application/$appId")
+                            },
+                            onOpenChat = {},
+                        )
+                    } else {
+                        ChatScreen(
+                            conversationId = conversation.id,
+                            currentUserId = state.user?.id,
+                            peerTitle = run {
+                                val app = state.applicationsByBooking[bookingId].orEmpty()
+                                    .firstOrNull { it.walker_user_id == conversation.walker_user_id }
+                                listOfNotNull(app?.walker_first_name, app?.walker_last_name).joinToString(" ").ifBlank { "Собеседник" }
+                            },
+                            messages = state.chatMessagesByConversation[conversation.id].orEmpty(),
+                            hasMore = state.chatHasMoreByConversation[conversation.id] ?: false,
+                            loading = state.loading,
+                            onBack = { navController.popBackStack() },
+                            onRefresh = {
+                                vm.loadChatMessages(conversation.id, reset = true)
+                                vm.markChatRead(conversation.id)
+                            },
+                            onLoadMore = { vm.loadChatMessages(conversation.id, reset = false) },
+                            onSend = { text -> vm.sendChatMessage(conversation.id, text) },
+                        )
+                    }
+                }
+                composable("dogs") {
+                    if (isWalker) {
+                        BookingScreen(
+                            state = state,
+                            onRefresh = vm::loadAll,
+                            onPay = vm::confirmAndPay,
+                            onReview = vm::reviewBooking,
+                            onAcceptAsWalker = vm::applyAsWalker,
+                            onOpenBooking = { id -> navController.navigate("booking/$id") },
+                            onOpenWalk = { id -> navController.navigate("walk/$id") },
+                        )
+                    } else {
+                        DogsScreen(state, { id -> navController.navigate("dog/$id") }, { navController.navigate("dog/add") })
+                    }
+                }
                 composable("dog/add") {
                     DogAddScreen(
                         onAdd = { name, breed, birthDate, weightKg, gender, vaccinated, sterilized, aggressive, behavior, medical ->

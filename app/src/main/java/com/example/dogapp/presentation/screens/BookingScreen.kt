@@ -58,7 +58,12 @@ fun BookingScreen(
     onRefresh: () -> Unit,
     onPay: (String) -> Unit,
     onReview: (String, Int, String) -> Unit,
+    onAcceptAsWalker: (String) -> Unit,
+    onOpenBooking: (String) -> Unit,
+    onOpenWalk: (String) -> Unit,
 ) {
+    val isWalker = state.user?.role?.key.equals("walker", ignoreCase = true)
+    val bookings = if (isWalker) state.walkerBookings else state.ownerBookings
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -83,14 +88,14 @@ fun BookingScreen(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Бронирования",
+                        text = if (isWalker) "Заявки на прогулку" else "Мои заявки",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        text = "Ваши прогулки и статусы оплаты",
+                        text = if (isWalker) "Доступные и активные прогулки" else "Созданные заявки и отклики выгульщиков",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.White.copy(alpha = 0.88f),
                     )
@@ -111,7 +116,7 @@ fun BookingScreen(
             }
         }
 
-        if (state.ownerBookings.isEmpty()) {
+        if (bookings.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -132,7 +137,7 @@ fun BookingScreen(
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "Создайте заявку на карте или в карточке питомца",
+                        text = if (isWalker) "Когда владелец создаст заявку, она появится здесь" else "Создайте заявку на карте или в карточке питомца",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -146,16 +151,20 @@ fun BookingScreen(
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 item { Spacer(Modifier.height(8.dp)) }
-                items(state.ownerBookings, key = { it.id }) { b ->
+                items(bookings, key = { it.id }) { b ->
                     val dogName = state.dogs.firstOrNull { it.id == b.dog_id }?.name ?: "Питомец"
                     var reviewText by remember(b.id) { mutableStateOf("Отличная прогулка") }
                     BookingCard(
                         booking = b,
+                        isWalker = isWalker,
                         dogName = dogName,
                         reviewText = reviewText,
                         onReviewTextChange = { reviewText = it },
                         onPay = { onPay(b.id) },
                         onReview = { onReview(b.id, 5, reviewText) },
+                        onAcceptAsWalker = { onAcceptAsWalker(b.id) },
+                        onOpenBooking = { onOpenBooking(b.id) },
+                        onOpenWalk = { onOpenWalk(b.id) },
                     )
                 }
                 item { Spacer(Modifier.height(24.dp)) }
@@ -167,11 +176,15 @@ fun BookingScreen(
 @Composable
 private fun BookingCard(
     booking: BookingDto,
+    isWalker: Boolean,
     dogName: String,
     reviewText: String,
     onReviewTextChange: (String) -> Unit,
     onPay: () -> Unit,
     onReview: () -> Unit,
+    onAcceptAsWalker: () -> Unit,
+    onOpenBooking: () -> Unit,
+    onOpenWalk: () -> Unit,
 ) {
     val statusUi = bookingStatusUi(booking.status)
     Card(
@@ -248,41 +261,83 @@ private fun BookingCard(
 
             Spacer(Modifier.height(16.dp))
 
-            OutlinedTextField(
-                value = reviewText,
-                onValueChange = onReviewTextChange,
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Текст отзыва") },
-                minLines = 2,
-                shape = RoundedCornerShape(14.dp),
-            )
-
             Spacer(Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                OutlinedButton(
-                    onClick = onPay,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = PetProfileColors.CardTeal,
-                    ),
+            if (isWalker) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    Text("Оплатить", fontWeight = FontWeight.Medium)
+                    OutlinedButton(
+                        onClick = onOpenBooking,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = PetProfileColors.CardTeal),
+                    ) { Text("Детали") }
+                    if (booking.status.equals("PENDING", true)) {
+                        Button(
+                            onClick = onOpenBooking,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = PetProfileColors.CardTeal,
+                                contentColor = Color.White,
+                            ),
+                        ) { Text("Откликнуться") }
+                    } else {
+                        Button(
+                            onClick = onOpenWalk,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = PetProfileColors.CardTeal,
+                                contentColor = Color.White,
+                            ),
+                        ) { Text("Прогулка") }
+                    }
                 }
-                Button(
-                    onClick = onReview,
-                    modifier = Modifier.weight(1f),
+            } else {
+                OutlinedTextField(
+                    value = reviewText,
+                    onValueChange = onReviewTextChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Текст отзыва") },
+                    minLines = 2,
                     shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = PetProfileColors.CardTeal,
-                        contentColor = Color.White,
-                    ),
+                )
+
+                Spacer(Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    Text("Отзыв", fontWeight = FontWeight.Medium)
+                    OutlinedButton(
+                        onClick = onOpenBooking,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = PetProfileColors.CardTeal),
+                    ) { Text("Детали") }
+                    OutlinedButton(
+                        onClick = onPay,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = PetProfileColors.CardTeal,
+                        ),
+                    ) {
+                        Text("Оплатить", fontWeight = FontWeight.Medium)
+                    }
+                    Button(
+                        onClick = onReview,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = PetProfileColors.CardTeal,
+                            contentColor = Color.White,
+                        ),
+                    ) {
+                        Text("Отзыв", fontWeight = FontWeight.Medium)
+                    }
                 }
             }
         }
