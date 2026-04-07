@@ -3,6 +3,7 @@ package com.example.dogapp.data.repository
 import android.net.Uri
 import com.example.dogapp.data.api.*
 import com.example.dogapp.data.local.DogPhotoStorage
+import retrofit2.HttpException
 import com.example.dogapp.data.local.SettingsStore
 import com.example.dogapp.data.local.TokenStore
 import kotlinx.coroutines.flow.first
@@ -476,7 +477,11 @@ class AppRepository(
     }
 
     suspend fun startSession(bookingId: String) = withAuthRetry { api.startSession(it, WalkSessionStartDto(bookingId)) }
-    suspend fun sessionByBooking(bookingId: String) = withAuthRetry { api.sessionByBooking(bookingId, it) }
+    suspend fun sessionByBooking(bookingId: String): WalkSessionDto? = withAuthRetry { token ->
+        val response = api.sessionByBooking(bookingId, token)
+        if (!response.isSuccessful) throw HttpException(response)
+        response.body()
+    }
     suspend fun addPoint(sessionId: String, lat: Double, lng: Double) = withAuthRetry { api.addPoint(sessionId, it, TrackPointInDto(lat, lng)) }
     suspend fun points(sessionId: String, pageSize: Int = 200): List<TrackPointDto> = withAuthRetry { token ->
         val out = mutableListOf<TrackPointDto>()
@@ -505,10 +510,15 @@ class AppRepository(
 
     suspend fun createReview(bookingId: String, rating: Int, comment: String) = withAuthRetry { api.createReview(it, ReviewCreateDto(bookingId, rating, comment)) }
 
-    suspend fun createAndConfirmPayment(bookingId: String): PaymentDto {
-        val intent = withAuthRetry { api.paymentIntent(it, PaymentIntentCreateDto(bookingId)) }
-        return withAuthRetry { api.confirmPayment(intent.id, it) }
-    }
+    suspend fun myWallet() = withAuthRetry { api.myWallet(it) }
+
+    suspend fun topUpWallet(amount: Double) = withAuthRetry { api.topUpWallet(it, WalletTopUpDto(amount)) }
+
+    suspend fun ownerSettleBooking(bookingId: String) = withAuthRetry { api.ownerSettleBooking(bookingId, it) }
+
+    suspend fun myWithdrawals() = withAuthRetry { api.myWithdrawals(it) }
+
+    suspend fun createWithdrawal(amount: Double) = withAuthRetry { api.createWithdrawal(it, WithdrawalCreateDto(amount)) }
 
     suspend fun darkThemeEnabled() = settingsStore.darkThemeFlow.first()
     suspend fun compactUiEnabled() = settingsStore.compactUiFlow.first()

@@ -15,7 +15,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.outlined.Analytics
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Chat
 import androidx.compose.material.icons.outlined.ChevronRight
@@ -52,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import com.example.dogapp.data.api.BookingApplicationDto
 import com.example.dogapp.data.api.BookingDto
 import com.example.dogapp.data.api.WalkRouteResponseDto
+import com.example.dogapp.data.api.WalletDto
 import com.example.dogapp.ui.theme.PetProfileColors
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,6 +61,7 @@ fun BookingDetailScreen(
     dogName: String?,
     route: WalkRouteResponseDto?,
     applications: List<BookingApplicationDto>,
+    currentUserId: String?,
     isWalker: Boolean,
     isOwner: Boolean,
     hasConversation: Boolean,
@@ -70,11 +71,21 @@ fun BookingDetailScreen(
     onBack: () -> Unit,
     onRefreshRoute: () -> Unit,
     onOpenWalk: () -> Unit,
+    /** Назначенный выгульщик: PENDING → CONFIRMED через PATCH статуса. */
+    onWalkerConfirmBooking: () -> Unit = {},
     onRefreshApplications: () -> Unit,
     onSubmitApplication: (String?) -> Unit,
     onWithdrawApplication: (String) -> Unit,
     onOpenApplication: (applicationId: String) -> Unit,
     onOpenChat: () -> Unit,
+    wallet: WalletDto? = null,
+    paymentLoading: Boolean = false,
+    ownerPaymentError: String? = null,
+    onOwnerTopUp: (Double) -> Unit = {},
+    onOwnerSettle: () -> Unit = {},
+    onOwnerRefreshForPayment: () -> Unit = {},
+    /** Выгульщик: если прогулка уже сдана, а статус «завис» на CONFIRMED/IN_PROGRESS. */
+    onWalkerPushToOwnerPayment: () -> Unit = {},
 ) {
     var applicationMessage by remember { mutableStateOf("") }
     Scaffold(
@@ -145,6 +156,72 @@ fun BookingDetailScreen(
                 }
             }
 
+            val statusUp = booking.status.uppercase()
+            val walkerCanPushOwnerPayment = isWalker &&
+                statusUp in setOf("CONFIRMED", "IN_PROGRESS") &&
+                statusUp !in setOf("AWAITING_OWNER_PAYMENT", "COMPLETED", "CANCELLED", "PENDING")
+            if (walkerCanPushOwnerPayment) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5F4)),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Text(
+                            text = "Завершение прогулки",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            text = "Если вы уже закончили выгул и нажали «Завершить», а у владельца не появилась оплата — нажмите кнопку ниже (исправляет статус заказа на сервере).",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        OutlinedButton(
+                            onClick = onWalkerPushToOwnerPayment,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = PetProfileColors.CardTealDark),
+                        ) {
+                            Text("Передать владельцу на оплату")
+                        }
+                    }
+                }
+            }
+
+            val awaitingOwnerPayment = booking.status.equals("AWAITING_OWNER_PAYMENT", ignoreCase = true)
+            if (isOwner && awaitingOwnerPayment) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                ) {
+                    OwnerWalkSettleForm(
+                        booking = booking,
+                        dogName = dogName ?: "Питомец",
+                        wallet = wallet,
+                        route = route,
+                        loading = paymentLoading,
+                        errorText = ownerPaymentError,
+                        onTopUp = onOwnerTopUp,
+                        onSettle = onOwnerSettle,
+                        onRefresh = onOwnerRefreshForPayment,
+                        onRefreshRoute = onRefreshRoute,
+                        embeddedInCard = true,
+                        modifier = Modifier.padding(16.dp),
+                    )
+                }
+            }
+
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -183,6 +260,48 @@ fun BookingDetailScreen(
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }
+            if (isWalker && booking.status.equals("PENDING", ignoreCase = true)) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Text(
+                            "Прогулку можно начать только после подтверждения заказа",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            if (booking.walker_id.isNullOrBlank()) {
+                                "Отправьте отклик ниже и дождитесь, пока владелец выберет вас. Когда статус станет «Подтверждено», кнопка прогулки станет доступна."
+                            } else {
+                                "Вас назначили на этот заказ. Нажмите «Подтвердить заказ», затем откройте экран прогулки."
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        if (!booking.walker_id.isNullOrBlank()) {
+                            Button(
+                                onClick = onWalkerConfirmBooking,
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = PetProfileColors.CardTeal,
+                                    contentColor = Color.White,
+                                ),
+                                shape = RoundedCornerShape(12.dp),
+                            ) { Text("Подтвердить заказ") }
+                        }
+                    }
+                }
+            }
+            if (booking.status.equals("PENDING", ignoreCase = true)) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -195,7 +314,18 @@ fun BookingDetailScreen(
                     Text("Отклики на заявку", style = MaterialTheme.typography.titleMedium)
                     OutlinedButton(onClick = onRefreshApplications) { Text("Обновить отклики") }
                     val canSubmitApplication = booking.status.equals("PENDING", ignoreCase = true)
-                    if (isWalker && canSubmitApplication) {
+                    val walkerHasActiveOwnApplication = currentUserId != null && applications.any { app ->
+                        app.walker_user_id == currentUserId &&
+                            app.status?.uppercase() in setOf("PENDING", "ACCEPTED")
+                    }
+                    if (isWalker && canSubmitApplication && walkerHasActiveOwnApplication) {
+                        Text(
+                            "Вы уже откликнулись на эту заявку. Дождитесь решения владельца или отзовите отклик ниже.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    if (isWalker && canSubmitApplication && !walkerHasActiveOwnApplication) {
                         OutlinedTextField(
                             value = applicationMessage,
                             onValueChange = { applicationMessage = it },
@@ -278,6 +408,7 @@ fun BookingDetailScreen(
                     }
                 }
             }
+            }
             if (hasConversation) {
                 Button(
                     onClick = onOpenChat,
@@ -295,44 +426,67 @@ fun BookingDetailScreen(
                 }
             }
             Spacer(Modifier.height(6.dp))
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-            ) {
-                Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Icon(Icons.Outlined.Route, contentDescription = null, tint = PetProfileColors.CardTeal)
-                        Text("Маршрут и аналитика", style = MaterialTheme.typography.titleMedium)
-                    }
-                    if (route == null) {
-                        Text("Маршрут ещё не сформирован")
-                    } else {
-                        BookingDetailRow(
-                            icon = Icons.Outlined.Analytics,
-                            title = "Точек всего",
-                            value = "${route.summary.total_points ?: route.summary.points_count}",
+            if (!(isOwner && awaitingOwnerPayment)) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                ) {
+                    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Icon(Icons.Outlined.Route, contentDescription = null, tint = PetProfileColors.CardTeal)
+                            Text("Маршрут и аналитика", style = MaterialTheme.typography.titleMedium)
+                        }
+                        WalkRouteMapPreview(
+                            route = route,
+                            meetingLatitude = booking.meeting_latitude,
+                            meetingLongitude = booking.meeting_longitude,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(220.dp),
                         )
-                        route.summary.total_distance_m?.let { BookingDetailRow(Icons.Outlined.Route, "Дистанция", "${"%.0f".format(it)} м") }
-                        route.summary.duration_seconds?.let { BookingDetailRow(Icons.Outlined.Schedule, "Длительность", "${it / 60} мин") }
-                        Text(
-                            "Пагинация: offset=${route.summary.offset ?: 0}, limit=${route.summary.limit ?: route.points.size}, has_more=${route.summary.has_more ?: false}",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-                    OutlinedButton(onClick = onRefreshRoute) { Text("Обновить маршрут") }
-                    if (canOpenWalk) {
-                        Button(
-                            onClick = onOpenWalk,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = PetProfileColors.CardTeal,
-                                contentColor = Color.White,
-                            ),
-                            shape = RoundedCornerShape(12.dp),
-                        ) { Text("Открыть экран прогулки") }
+                        if (route == null) {
+                            Text(
+                                "Маршрут появится после начала прогулки или обновите ниже.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        } else {
+                            route.summary.total_distance_m?.let { m ->
+                                BookingDetailRow(
+                                    Icons.Outlined.Route,
+                                    "Дистанция",
+                                    bookingDetailDistanceLabel(m),
+                                )
+                            }
+                            route.summary.duration_seconds?.let { sec ->
+                                BookingDetailRow(
+                                    Icons.Outlined.Schedule,
+                                    "Длительность",
+                                    bookingDetailDurationLabel(sec),
+                                )
+                            }
+                            val pts = route.summary.total_points ?: route.summary.points_count
+                            Text(
+                                "Точек в треке: $pts",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        OutlinedButton(onClick = onRefreshRoute) { Text("Обновить маршрут") }
+                        if (canOpenWalk) {
+                            Button(
+                                onClick = onOpenWalk,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = PetProfileColors.CardTeal,
+                                    contentColor = Color.White,
+                                ),
+                                shape = RoundedCornerShape(12.dp),
+                            ) { Text("Открыть экран прогулки") }
+                        }
                     }
                 }
             }
@@ -362,10 +516,28 @@ private fun BookingDetailRow(
     }
 }
 
+private fun bookingDetailDistanceLabel(meters: Double): String {
+    val km = meters / 1000.0
+    return if (km < 0.1) "${"%.0f".format(meters)} м" else "${"%.2f".format(km)} км"
+}
+
+private fun bookingDetailDurationLabel(seconds: Int): String {
+    if (seconds <= 0) return "0 с"
+    val h = seconds / 3600
+    val m = (seconds % 3600) / 60
+    val s = seconds % 60
+    return when {
+        h > 0 -> "$h ч $m мин"
+        m > 0 -> "$m мин $s с"
+        else -> "$s с"
+    }
+}
+
 private fun bookingStatusRu(status: String): String = when (status.uppercase()) {
     "PENDING" -> "Ожидает подтверждения"
     "CONFIRMED" -> "Подтверждено"
     "IN_PROGRESS" -> "В процессе"
+    "AWAITING_OWNER_PAYMENT" -> "Ожидает оплаты"
     "COMPLETED" -> "Завершено"
     "CANCELLED" -> "Отменено"
     else -> status

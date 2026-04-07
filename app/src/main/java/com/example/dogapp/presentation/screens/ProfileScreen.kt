@@ -72,9 +72,13 @@ fun ProfileScreen(
     onOpenSettings: () -> Unit,
     onLogout: () -> Unit,
     onBack: () -> Unit,
+    onTopUpWallet: (Double) -> Unit = {},
+    onOpenWithdrawals: () -> Unit = {},
 ) {
     val editing = remember { mutableStateOf(false) }
     val showConfirm = remember { mutableStateOf(false) }
+    val showTopUp = remember { mutableStateOf(false) }
+    val topUpAmount = remember { mutableStateOf("500") }
     val telegram = remember { mutableStateOf(state.user?.telegram ?: "") }
     val firstName = remember { mutableStateOf(state.user?.first_name ?: "") }
     val lastName = remember { mutableStateOf(state.user?.last_name ?: "") }
@@ -92,6 +96,34 @@ fun ProfileScreen(
         gender.value = u.gender.orEmpty()
         country.value = u.country.orEmpty()
         city.value = u.city.orEmpty()
+    }
+
+    if (showTopUp.value) {
+        AlertDialog(
+            onDismissRequest = { showTopUp.value = false },
+            title = { Text("Пополнение баланса") },
+            text = {
+                OutlinedTextField(
+                    value = topUpAmount.value,
+                    onValueChange = { topUpAmount.value = it.filter { ch -> ch.isDigit() || ch == '.' } },
+                    label = { Text("Сумма (₽)") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val v = topUpAmount.value.replace(',', '.').toDoubleOrNull() ?: return@TextButton
+                    if (v > 0) {
+                        onTopUpWallet(v)
+                        showTopUp.value = false
+                    }
+                }) { Text("Пополнить") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTopUp.value = false }) { Text(stringResource(R.string.common_cancel)) }
+            },
+        )
     }
 
     if (showConfirm.value) {
@@ -351,6 +383,13 @@ fun ProfileScreen(
                         label = stringResource(R.string.profile_notifications),
                         value = stringResource(R.string.profile_count_format, state.notifications.size),
                     )
+                    state.wallet?.let { w ->
+                        ProfileInfoRow(
+                            icon = Icons.Outlined.Payments,
+                            label = "Кошелёк",
+                            value = "%.0f %s".format(w.balance, w.currency),
+                        )
+                    }
                     ProfileInfoRow(
                         icon = Icons.Outlined.Payments,
                         label = stringResource(R.string.profile_payments),
@@ -415,6 +454,30 @@ fun ProfileScreen(
                             label = { Text(stringResource(R.string.profile_city)) },
                             modifier = Modifier.fillMaxWidth(),
                         )
+                    }
+                }
+
+                if (!editing.value && user != null) {
+                    val isWalkerRole = user.role?.key.equals("walker", ignoreCase = true)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        if (isWalkerRole) {
+                            OutlinedButton(
+                                onClick = onOpenWithdrawals,
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                            ) { Text("Вывод средств") }
+                        } else {
+                            OutlinedButton(
+                                onClick = { showTopUp.value = true },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                            ) { Text("Пополнить баланс") }
+                        }
                     }
                 }
 

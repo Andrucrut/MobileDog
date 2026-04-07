@@ -52,7 +52,8 @@ fun MapScreen(
     val isWalker = state.user?.role?.key.equals("walker", ignoreCase = true)
     val mapBookings = if (isWalker) state.walkerBookings else state.ownerBookings
     val bookingsOnMap = mapBookings.filter {
-        it.meeting_latitude != null && it.meeting_longitude != null
+        !it.status.equals("COMPLETED", ignoreCase = true) &&
+            it.meeting_latitude != null && it.meeting_longitude != null
     }
     val groupedByLocation = bookingsOnMap.groupBy { b ->
         geoGroupKey(b.meeting_latitude!!, b.meeting_longitude!!)
@@ -97,13 +98,14 @@ fun MapScreen(
                         map.overlays.add(m)
                     }
                 }
-                state.trackPoints.forEach { p ->
-                    val m = Marker(map)
-                    m.position = GeoPoint(p.latitude, p.longitude)
-                    m.title = "Точка маршрута"
-                    map.overlays.add(m)
-                }
-                if (state.trackPoints.isNotEmpty()) {
+                val showLiveWalkTrack = state.activeSession != null && state.trackPoints.isNotEmpty()
+                if (showLiveWalkTrack) {
+                    state.trackPoints.forEach { p ->
+                        val m = Marker(map)
+                        m.position = GeoPoint(p.latitude, p.longitude)
+                        m.title = "Точка маршрута"
+                        map.overlays.add(m)
+                    }
                     val polyline = Polyline().apply {
                         setPoints(state.trackPoints.map { GeoPoint(it.latitude, it.longitude) })
                         outlinePaint.color = android.graphics.Color.BLUE
@@ -196,6 +198,7 @@ private fun bookingStatusRuShort(status: String): String = when (status.uppercas
     "PENDING" -> "ожидает"
     "CONFIRMED" -> "подтверждено"
     "IN_PROGRESS" -> "идёт"
+    "AWAITING_OWNER_PAYMENT" -> "ждёт оплаты"
     "COMPLETED" -> "завершено"
     "CANCELLED" -> "отменено"
     else -> status

@@ -93,14 +93,39 @@ interface ApiService {
         @Body body: BookingStatusUpdateDto,
     ): BookingDto
 
+    @POST("booking/bookings/{id}/owner-settle")
+    suspend fun ownerSettleBooking(
+        @retrofit2.http.Path("id") bookingId: String,
+        @Header("Authorization") token: String,
+    ): BookingDto
+
+    @GET("payment/wallets/me")
+    suspend fun myWallet(@Header("Authorization") token: String): WalletDto
+
+    @POST("payment/wallets/topup")
+    suspend fun topUpWallet(
+        @Header("Authorization") token: String,
+        @Body body: WalletTopUpDto,
+    ): WalletDto
+
+    @POST("payment/withdrawals/")
+    suspend fun createWithdrawal(
+        @Header("Authorization") token: String,
+        @Body body: WithdrawalCreateDto,
+    ): WithdrawalDto
+
+    @GET("payment/withdrawals/me")
+    suspend fun myWithdrawals(@Header("Authorization") token: String): List<WithdrawalDto>
+
     @POST("tracking/walk-sessions/start")
     suspend fun startSession(@Header("Authorization") token: String, @Body body: WalkSessionStartDto): WalkSessionDto
 
+    /** Тело может быть JSON null, пока сессии нет — только через Response, иначе падает адаптер Retrofit. */
     @GET("tracking/walk-sessions/by-booking/{id}")
     suspend fun sessionByBooking(
         @retrofit2.http.Path("id") bookingId: String,
         @Header("Authorization") token: String,
-    ): WalkSessionDto?
+    ): Response<WalkSessionDto>
 
     @GET("tracking/walk-sessions/{id}/points")
     suspend fun sessionPoints(

@@ -44,6 +44,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.dogapp.data.api.BookingApplicationDto
 import com.example.dogapp.data.api.BookingDto
 import com.example.dogapp.presentation.viewmodel.MainState
 import com.example.dogapp.ui.theme.PetProfileColors
@@ -56,14 +57,14 @@ import java.util.Locale
 fun BookingScreen(
     state: MainState,
     onRefresh: () -> Unit,
-    onPay: (String) -> Unit,
     onReview: (String, Int, String) -> Unit,
     onAcceptAsWalker: (String) -> Unit,
     onOpenBooking: (String) -> Unit,
     onOpenWalk: (String) -> Unit,
 ) {
     val isWalker = state.user?.role?.key.equals("walker", ignoreCase = true)
-    val bookings = if (isWalker) state.walkerBookings else state.ownerBookings
+    val bookings = (if (isWalker) state.walkerBookings else state.ownerBookings)
+        .filter { !it.status.equals("COMPLETED", ignoreCase = true) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -154,13 +155,16 @@ fun BookingScreen(
                 items(bookings, key = { it.id }) { b ->
                     val dogName = state.dogs.firstOrNull { it.id == b.dog_id }?.name ?: "Питомец"
                     var reviewText by remember(b.id) { mutableStateOf("Отличная прогулка") }
+                    val apps = state.applicationsByBooking[b.id].orEmpty()
+                    val hasWalkerActiveApplication =
+                        isWalker && walkerHasActiveOwnApplication(apps, state.user?.id)
                     BookingCard(
                         booking = b,
                         isWalker = isWalker,
+                        hasWalkerActiveApplication = hasWalkerActiveApplication,
                         dogName = dogName,
                         reviewText = reviewText,
                         onReviewTextChange = { reviewText = it },
-                        onPay = { onPay(b.id) },
                         onReview = { onReview(b.id, 5, reviewText) },
                         onAcceptAsWalker = { onAcceptAsWalker(b.id) },
                         onOpenBooking = { onOpenBooking(b.id) },
@@ -177,10 +181,10 @@ fun BookingScreen(
 private fun BookingCard(
     booking: BookingDto,
     isWalker: Boolean,
+    hasWalkerActiveApplication: Boolean,
     dogName: String,
     reviewText: String,
     onReviewTextChange: (String) -> Unit,
-    onPay: () -> Unit,
     onReview: () -> Unit,
     onAcceptAsWalker: () -> Unit,
     onOpenBooking: () -> Unit,
@@ -203,17 +207,37 @@ private fun BookingCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = statusUi.container,
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f, fill = false),
                 ) {
-                    Text(
-                        text = statusUi.labelRu,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = statusUi.onContainer,
-                    )
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = statusUi.container,
+                    ) {
+                        Text(
+                            text = statusUi.labelRu,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = statusUi.onContainer,
+                        )
+                    }
+                    if (isWalker && booking.status.equals("PENDING", ignoreCase = true) && hasWalkerActiveApplication) {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFFE0F2F1),
+                        ) {
+                            Text(
+                                text = "Вы откликнулись",
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = PetProfileColors.CardTealDark,
+                            )
+                        }
+                    }
                 }
                 Text(
                     text = "%.0f ₽".format(booking.price),
@@ -263,81 +287,103 @@ private fun BookingCard(
 
             Spacer(Modifier.height(12.dp))
             if (isWalker) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    OutlinedButton(
-                        onClick = onOpenBooking,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = PetProfileColors.CardTeal),
-                    ) { Text("Детали") }
-                    if (booking.status.equals("PENDING", true)) {
-                        Button(
+                when {
+                    booking.status.equals("PENDING", ignoreCase = true) && hasWalkerActiveApplication -> {
+                        OutlinedButton(
                             onClick = onOpenBooking,
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = PetProfileColors.CardTeal,
-                                contentColor = Color.White,
-                            ),
-                        ) { Text("Откликнуться") }
-                    } else {
-                        Button(
-                            onClick = onOpenWalk,
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = PetProfileColors.CardTeal,
-                                contentColor = Color.White,
-                            ),
-                        ) { Text("Прогулка") }
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = PetProfileColors.CardTeal),
+                        ) { Text("Детали") }
+                    }
+                    else -> {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            OutlinedButton(
+                                onClick = onOpenBooking,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(14.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = PetProfileColors.CardTeal),
+                            ) { Text("Детали") }
+                            if (booking.status.equals("PENDING", true)) {
+                                Button(
+                                    onClick = onOpenBooking,
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(14.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = PetProfileColors.CardTeal,
+                                        contentColor = Color.White,
+                                    ),
+                                ) { Text("Откликнуться") }
+                            } else {
+                                Button(
+                                    onClick = onOpenWalk,
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(14.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = PetProfileColors.CardTeal,
+                                        contentColor = Color.White,
+                                    ),
+                                ) { Text("Прогулка") }
+                            }
+                        }
                     }
                 }
             } else {
-                OutlinedTextField(
-                    value = reviewText,
-                    onValueChange = onReviewTextChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Текст отзыва") },
-                    minLines = 2,
-                    shape = RoundedCornerShape(14.dp),
-                )
-
-                Spacer(Modifier.height(12.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
+                if (booking.status.equals("AWAITING_OWNER_PAYMENT", ignoreCase = true)) {
+                    Text(
+                        text = "Ожидает оплаты на главном экране — завершите оплату, чтобы продолжить.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(12.dp))
                     OutlinedButton(
                         onClick = onOpenBooking,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = PetProfileColors.CardTeal),
+                    ) { Text("Детали заказа") }
+                } else if (booking.status.equals("COMPLETED", ignoreCase = true)) {
+                    OutlinedTextField(
+                        value = reviewText,
+                        onValueChange = onReviewTextChange,
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Текст отзыва") },
+                        minLines = 2,
+                        shape = RoundedCornerShape(14.dp),
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        OutlinedButton(
+                            onClick = onOpenBooking,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = PetProfileColors.CardTeal),
+                        ) { Text("Детали") }
+                        Button(
+                            onClick = onReview,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = PetProfileColors.CardTeal,
+                                contentColor = Color.White,
+                            ),
+                        ) {
+                            Text("Отзыв", fontWeight = FontWeight.Medium)
+                        }
+                    }
+                } else {
+                    OutlinedButton(
+                        onClick = onOpenBooking,
+                        modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = PetProfileColors.CardTeal),
                     ) { Text("Детали") }
-                    OutlinedButton(
-                        onClick = onPay,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = PetProfileColors.CardTeal,
-                        ),
-                    ) {
-                        Text("Оплатить", fontWeight = FontWeight.Medium)
-                    }
-                    Button(
-                        onClick = onReview,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = PetProfileColors.CardTeal,
-                            contentColor = Color.White,
-                        ),
-                    ) {
-                        Text("Отзыв", fontWeight = FontWeight.Medium)
-                    }
                 }
             }
         }
@@ -393,6 +439,11 @@ private fun bookingStatusUi(status: String): StatusUi {
             container = Color(0xFFE3F2FD),
             onContainer = Color(0xFF1565C0),
         )
+        "AWAITING_OWNER_PAYMENT" -> StatusUi(
+            labelRu = "Ожидает оплаты",
+            container = Color(0xFFFFF8E1),
+            onContainer = Color(0xFFF57F17),
+        )
         "COMPLETED" -> StatusUi(
             labelRu = "Завершено",
             container = Color(0xFFE8F5E9),
@@ -419,6 +470,17 @@ private fun formatScheduledRu(iso: String): String {
         z.format(fmt)
     } catch (_: Exception) {
         iso
+    }
+}
+
+private fun walkerHasActiveOwnApplication(
+    applications: List<BookingApplicationDto>,
+    userId: String?,
+): Boolean {
+    if (userId == null) return false
+    return applications.any { app ->
+        app.walker_user_id == userId &&
+            app.status?.uppercase() in setOf("PENDING", "ACCEPTED")
     }
 }
 

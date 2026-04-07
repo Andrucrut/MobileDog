@@ -30,10 +30,12 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.dogapp.BuildConfig
 import com.example.dogapp.data.api.BookingDto
 import com.example.dogapp.data.api.TrackPointDto
 import com.example.dogapp.data.api.WalkRouteResponseDto
@@ -60,10 +63,15 @@ fun WalkSessionScreen(
     trackPoints: List<TrackPointDto>,
     activeForBooking: Boolean,
     loading: Boolean,
+    feedbackText: String? = null,
+    feedbackIsError: Boolean = false,
+    onClearFeedback: () -> Unit = {},
     onBack: () -> Unit,
     onStartOrResume: () -> Unit,
     onAddPoint: (Double, Double) -> Unit,
     onAddFakePoint: () -> Unit,
+    /** Debug: шаг симуляции (север, восток, интенсивность 0..1). */
+    onSimulatedWalkTick: (Double, Double, Double) -> Unit = { _, _, _ -> },
     onFinish: () -> Unit,
     onRefreshRoute: () -> Unit,
 ) {
@@ -131,7 +139,39 @@ fun WalkSessionScreen(
             }
         }
 
+        if (loading) {
+            LinearProgressIndicator(
+                modifier = Modifier.fillMaxWidth(),
+                color = PetProfileColors.CardTeal,
+            )
+        }
+
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            feedbackText?.let { msg ->
+                Card(
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (feedbackIsError) {
+                            MaterialTheme.colorScheme.errorContainer
+                        } else {
+                            MaterialTheme.colorScheme.primaryContainer
+                        },
+                    ),
+                ) {
+                    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = msg,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (feedbackIsError) {
+                                MaterialTheme.colorScheme.onErrorContainer
+                            } else {
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            },
+                        )
+                        TextButton(onClick = onClearFeedback) { Text("Скрыть") }
+                    }
+                }
+            }
             Card(
                 shape = RoundedCornerShape(18.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -187,6 +227,20 @@ fun WalkSessionScreen(
             }
             locationError.value?.let {
                 Text(it, color = MaterialTheme.colorScheme.error)
+            }
+
+            if (BuildConfig.DEBUG && activeForBooking) {
+                Card(
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                ) {
+                    WalkSimulationJoystick(
+                        enabled = !loading && activeForBooking,
+                        onSimulatedTick = onSimulatedWalkTick,
+                        modifier = Modifier.padding(16.dp),
+                    )
+                }
             }
 
             route?.let { r ->

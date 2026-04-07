@@ -399,3 +399,26 @@ data class ChatMessagesPageDto(
     val next_cursor: String? = null,
     val has_more: Boolean = false,
 )
+
+data class WalletDto(
+    val user_id: String,
+    val balance: Double,
+    val currency: String,
+)
+
+data class WalletTopUpDto(
+    val amount: Double,
+)
+
+data class WithdrawalDto(
+    val id: String,
+    val user_id: String,
+    val amount: Double,
+    val status: String,
+    val moderator_note: String? = null,
+    val created_at: String,
+)
+
+data class WithdrawalCreateDto(
+    val amount: Double,
+)

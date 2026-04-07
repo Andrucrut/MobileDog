@@ -7,15 +7,21 @@ import com.example.dogapp.data.api.*
 import com.example.dogapp.data.repository.AppRepository
 import com.example.dogapp.presentation.screens.UserRoleUi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import retrofit2.HttpException
 import java.time.Instant
 import java.time.ZoneOffset
+import kotlin.math.cos
 
 data class MainState(
     val startupChecked: Boolean = false,
@@ -32,6 +38,10 @@ data class MainState(
     val notifications: List<NotificationDto> = emptyList(),
     val reviews: List<ReviewDto> = emptyList(),
     val payments: List<PaymentDto> = emptyList(),
+    val wallet: WalletDto? = null,
+    val withdrawals: List<WithdrawalDto> = emptyList(),
+    /** После успешной оплаты заказа — показать модалку отзыва для этого booking id */
+    val reviewPromptBookingId: String? = null,
     val activeSession: WalkSessionDto? = null,
     val activeWalkBookingId: String? = null,
     val trackPoints: List<TrackPointDto> = emptyList(),
@@ -53,6 +63,9 @@ data class MainState(
 class MainViewModel(private val repository: AppRepository) : ViewModel() {
     private val _state = MutableStateFlow(MainState())
     val state: StateFlow<MainState> = _state.asStateFlow()
+
+    /** Последовательная отправка тестовых точек с джойстика, без глобального loading. */
+    private val simulatedPointMutex = Mutex()
 
     init {
         viewModelScope.launch { startupCheck() }
@@ -127,7 +140,23 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
             val notifications = repository.notifications()
             val reviews = repository.reviews()
             val payments = repository.payments()
+            val wallet = runCatching { repository.myWallet() }.getOrNull()
+            val withdrawals = if (me.role?.key.equals("walker", ignoreCase = true)) {
+                runCatching { repository.myWithdrawals() }.getOrDefault(emptyList())
+            } else {
+                emptyList()
+            }
             val conversations = runCatching { repository.conversations() }.getOrDefault(emptyList())
+            val walkerAppsPrefetch =
+                if (me.role?.key.equals("walker", ignoreCase = true)) {
+                    val pendingIds = walkerBookings
+                        .filter { it.status.equals("PENDING", ignoreCase = true) }
+                        .map { it.id }
+                        .distinct()
+                    prefetchWalkerOwnApplicationsForPendingBookings(pendingIds)
+                } else {
+                    emptyMap()
+                }
             _state.value = _state.value.copy(
                 user = me,
                 dogs = dogs,
@@ -137,9 +166,61 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
                 notifications = notifications,
                 reviews = reviews,
                 payments = payments,
+                wallet = wallet,
+                withdrawals = withdrawals,
                 dogLocalPhotos = repository.dogPhotoUriMap(),
                 conversations = conversations,
+                applicationsByBooking = if (walkerAppsPrefetch.isEmpty()) {
+                    _state.value.applicationsByBooking
+                } else {
+                    _state.value.applicationsByBooking + walkerAppsPrefetch
+                },
             )
+        }
+    }
+
+    /** Обновление списков заказов без сброса error/notice (после завершения прогулки). */
+    private suspend fun refreshBookingsAndWalletKeepingFeedback() {
+        val keepError = _state.value.error
+        val keepNotice = _state.value.notice
+        runCatching {
+            val me = repository.me()
+            if (me.role?.key.equals("walker", ignoreCase = true)) {
+                runCatching { repository.ensureWalkerProfileExistsForCurrentUser() }
+            }
+            val ownerBookings = repository.ownerBookingsWithCoordinates()
+            val walkerBookings = if (me.role?.key.equals("walker", ignoreCase = true)) {
+                val open = repository.openBookingsWithCoordinates()
+                val mine = repository.walkerBookings().map { repository.enrichBookingCoordinates(it) }
+                (open + mine).distinctBy { it.id }
+            } else {
+                repository.walkerBookings()
+            }
+            val wallet = runCatching { repository.myWallet() }.getOrNull()
+            _state.value = _state.value.copy(
+                user = me,
+                ownerBookings = ownerBookings,
+                walkerBookings = walkerBookings,
+                wallet = wallet,
+                error = keepError,
+                notice = keepNotice,
+            )
+        }
+    }
+
+    private suspend fun prefetchWalkerOwnApplicationsForPendingBookings(
+        bookingIds: List<String>,
+    ): Map<String, List<BookingApplicationDto>> {
+        if (bookingIds.isEmpty()) return emptyMap()
+        return supervisorScope {
+            bookingIds
+                .map { id ->
+                    async(Dispatchers.IO) {
+                        id to runCatching { repository.bookingApplications(id) }.getOrDefault(emptyList())
+                    }
+                }
+                .awaitAll()
+                .toMap()
         }
     }
 
@@ -262,9 +343,25 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
         }
     }
 
+    /** Устаревший /accept на бэкенде отключён; для открытых заявок — отклик, для назначенного выгульщика — PATCH CONFIRMED. */
     fun applyAsWalker(bookingId: String) = viewModelScope.launch {
         runCatchingLoading {
-            repository.acceptBooking(bookingId)
+            val b = (_state.value.walkerBookings + _state.value.ownerBookings).firstOrNull { it.id == bookingId }
+            if (!b?.walker_id.isNullOrBlank()) {
+                repository.updateBookingStatus(bookingId, "CONFIRMED")
+            } else {
+                repository.createBookingApplication(bookingId, null)
+            }
+            _state.value = _state.value.copy(
+                walkerBookings = (repository.openBookingsWithCoordinates() + repository.walkerBookings().map { repository.enrichBookingCoordinates(it) }).distinctBy { it.id },
+                ownerBookings = repository.ownerBookingsWithCoordinates(),
+            )
+        }
+    }
+
+    fun walkerConfirmAssignedBooking(bookingId: String) = viewModelScope.launch {
+        runCatchingLoading {
+            repository.updateBookingStatus(bookingId, "CONFIRMED")
             _state.value = _state.value.copy(
                 walkerBookings = (repository.openBookingsWithCoordinates() + repository.walkerBookings().map { repository.enrichBookingCoordinates(it) }).distinctBy { it.id },
                 ownerBookings = repository.ownerBookingsWithCoordinates(),
@@ -403,10 +500,42 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
         _state.value = _state.value.copy(error = null, notice = null)
     }
 
-    fun loadRouteByBooking(bookingId: String) = viewModelScope.launch {
-        runCatchingLoading {
+    /** Подгрузка маршрутов для списка завершённых прогулок (без глобального loading). */
+    fun prefetchCompletedWalkRoutes() = viewModelScope.launch {
+        val isWalker = _state.value.user?.role?.key.equals("walker", ignoreCase = true)
+        val list = if (isWalker) _state.value.walkerBookings else _state.value.ownerBookings
+        for (b in list.filter { it.status.equals("COMPLETED", ignoreCase = true) }) {
+            if (_state.value.routeByBooking.containsKey(b.id)) continue
+            runCatching {
+                val route = repository.routeByBooking(b.id, offset = 0, limit = 500)
+                _state.value = _state.value.copy(routeByBooking = _state.value.routeByBooking + (b.id to route))
+            }
+        }
+    }
+
+    fun loadRouteByBooking(bookingId: String, withGlobalLoading: Boolean = true) = viewModelScope.launch {
+        suspend fun fetchAndStore() {
             val route = repository.routeByBooking(bookingId, offset = 0, limit = 500)
             _state.value = _state.value.copy(routeByBooking = _state.value.routeByBooking + (bookingId to route))
+        }
+        if (withGlobalLoading) {
+            runCatchingLoading { fetchAndStore() }
+        } else {
+            runCatching { fetchAndStore() }
+                .onFailure { throwable ->
+                    if (throwable is HttpException && throwable.code() == 401) {
+                        repository.logout()
+                        _state.value = MainState(
+                            authorized = false,
+                            darkThemeEnabled = _state.value.darkThemeEnabled,
+                            compactUiEnabled = _state.value.compactUiEnabled,
+                            hideNotificationsPreview = _state.value.hideNotificationsPreview,
+                            error = humanError(throwable),
+                        )
+                    } else {
+                        _state.value = _state.value.copy(error = humanError(throwable), notice = null)
+                    }
+                }
         }
     }
 
@@ -415,12 +544,18 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
             val existing = repository.sessionByBooking(bookingId)
             val session = existing ?: repository.startSession(bookingId)
             val points = repository.points(session.id)
+            val booking = _state.value.walkerBookings.firstOrNull { it.id == bookingId }
+                ?: _state.value.ownerBookings.firstOrNull { it.id == bookingId }
+            if (booking?.status?.equals("CONFIRMED", ignoreCase = true) == true) {
+                runCatching { repository.updateBookingStatus(bookingId, "IN_PROGRESS") }
+            }
             _state.value = _state.value.copy(
                 activeSession = session,
                 activeWalkBookingId = bookingId,
                 trackPoints = points,
             )
-            loadRouteByBooking(bookingId)
+            loadAll()
+            loadRouteByBooking(bookingId, withGlobalLoading = false)
         }
     }
 
@@ -439,6 +574,61 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
         }
     }
 
+    /**
+     * Шаг симуляции прогулки: следующая точка от последней в треке (или точки встречи заявки).
+     * [unitNorth]/[unitEast] — нормированное направление (север/восток), [speedFactor] 0..1.
+     */
+    fun simulatedWalkStep(
+        bookingId: String,
+        unitNorth: Double,
+        unitEast: Double,
+        speedFactor: Double,
+    ) = viewModelScope.launch(Dispatchers.IO) {
+        simulatedPointMutex.withLock {
+            val s = _state.value.activeSession ?: return@withLock
+            if (_state.value.activeWalkBookingId != bookingId) return@withLock
+            val booking =
+                _state.value.walkerBookings.firstOrNull { it.id == bookingId }
+                    ?: _state.value.ownerBookings.firstOrNull { it.id == bookingId }
+            val last = _state.value.trackPoints.lastOrNull()
+            val baseLat = last?.latitude ?: booking?.meeting_latitude ?: 59.9343
+            val baseLng = last?.longitude ?: booking?.meeting_longitude ?: 30.3351
+            val len = kotlin.math.hypot(unitNorth, unitEast)
+            if (len < 1e-6) return@withLock
+            val n = unitNorth / len
+            val e = unitEast / len
+            val meters = 5.0 * speedFactor.coerceIn(0.2, 1.0)
+            val dLat = n * meters / 111_320.0
+            val rad = Math.toRadians(baseLat)
+            val denom = 111_320.0 * cos(rad)
+            val dLng = if (kotlin.math.abs(denom) < 1e-6) 0.0 else e * meters / denom
+            val newLat = baseLat + dLat
+            val newLng = baseLng + dLng
+            runCatching {
+                repository.addPoint(s.id, newLat, newLng)
+                val pts = repository.points(s.id)
+                withContext(Dispatchers.Main) {
+                    _state.value = _state.value.copy(trackPoints = pts)
+                }
+            }.onFailure { throwable ->
+                withContext(Dispatchers.Main) {
+                    if (throwable is HttpException && throwable.code() == 401) {
+                        repository.logout()
+                        _state.value = MainState(
+                            authorized = false,
+                            darkThemeEnabled = _state.value.darkThemeEnabled,
+                            compactUiEnabled = _state.value.compactUiEnabled,
+                            hideNotificationsPreview = _state.value.hideNotificationsPreview,
+                            error = humanError(throwable),
+                        )
+                    } else {
+                        _state.value = _state.value.copy(error = humanError(throwable), notice = null)
+                    }
+                }
+            }
+        }
+    }
+
     fun addFakePoint() = viewModelScope.launch {
         val baseLat = 59.9343
         val baseLng = 30.3351
@@ -451,25 +641,102 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
             repository.finishSession(s.id)
             val finishedBookingId = _state.value.activeWalkBookingId
             if (finishedBookingId != null) {
-                runCatching { repository.updateBookingStatus(finishedBookingId, "COMPLETED") }
+                pushBookingToAwaitingOwnerPayment(finishedBookingId)
             }
             _state.value = _state.value.copy(activeSession = null, activeWalkBookingId = null, trackPoints = emptyList())
-            loadAll()
-            if (finishedBookingId != null) loadRouteByBooking(finishedBookingId)
+            refreshBookingsAndWalletKeepingFeedback()
+            if (finishedBookingId != null) {
+                runCatching {
+                    val route = repository.routeByBooking(finishedBookingId, offset = 0, limit = 500)
+                    _state.value = _state.value.copy(
+                        routeByBooking = _state.value.routeByBooking + (finishedBookingId to route),
+                    )
+                }
+            }
         }
     }
 
-    fun confirmAndPay(bookingId: String) = viewModelScope.launch {
+    /**
+     * Бэкенд: AWAITING_OWNER_PAYMENT только из IN_PROGRESS.
+     * Раньше прогулка могла идти в статусе CONFIRMED — тогда добиваем IN_PROGRESS и повторяем.
+     * Для уже «зависших» заказов — кнопка выгульщика на экране заказа.
+     */
+    fun walkerPushPaymentToOwner(bookingId: String) = viewModelScope.launch {
         runCatchingLoading {
-            repository.createAndConfirmPayment(bookingId)
-            _state.value = _state.value.copy(payments = repository.payments())
+            pushBookingToAwaitingOwnerPayment(bookingId)
+            refreshBookingsAndWalletKeepingFeedback()
+        }
+    }
+
+    private suspend fun pushBookingToAwaitingOwnerPayment(bookingId: String) {
+        val st = (_state.value.walkerBookings + _state.value.ownerBookings)
+            .firstOrNull { it.id == bookingId }?.status?.uppercase()
+        val direct = runCatching { repository.updateBookingStatus(bookingId, "AWAITING_OWNER_PAYMENT") }
+        if (direct.isSuccess) return
+
+        if (st == "CONFIRMED") {
+            runCatching { repository.updateBookingStatus(bookingId, "IN_PROGRESS") }
+        }
+        runCatching { repository.updateBookingStatus(bookingId, "AWAITING_OWNER_PAYMENT") }
+            .onFailure { t ->
+                _state.value = _state.value.copy(error = humanError(t))
+            }
+    }
+
+    fun ownerSettleBooking(bookingId: String) = viewModelScope.launch {
+        runCatchingLoading {
+            repository.ownerSettleBooking(bookingId)
+            val me = repository.me()
+            val ownerBookings = repository.ownerBookingsWithCoordinates()
+            val wallet = runCatching { repository.myWallet() }.getOrNull()
+            _state.value = _state.value.copy(
+                user = me,
+                ownerBookings = ownerBookings,
+                wallet = wallet,
+                reviewPromptBookingId = bookingId,
+            )
+        }
+    }
+
+    fun topUpWallet(amount: Double) = viewModelScope.launch {
+        runCatchingLoading {
+            val w = repository.topUpWallet(amount)
+            _state.value = _state.value.copy(wallet = w)
+        }
+    }
+
+    fun clearReviewPrompt() {
+        _state.value = _state.value.copy(reviewPromptBookingId = null)
+    }
+
+    fun refreshWithdrawals() = viewModelScope.launch {
+        runCatchingLoading {
+            _state.value = _state.value.copy(
+                withdrawals = repository.myWithdrawals(),
+                wallet = runCatching { repository.myWallet() }.getOrNull(),
+            )
+        }
+    }
+
+    fun requestWithdrawal(amount: Double) = viewModelScope.launch {
+        runCatchingLoading {
+            repository.createWithdrawal(amount)
+            _state.value = _state.value.copy(
+                withdrawals = repository.myWithdrawals(),
+                wallet = runCatching { repository.myWallet() }.getOrNull(),
+            )
         }
     }
 
     fun reviewBooking(bookingId: String, rating: Int, comment: String) = viewModelScope.launch {
         runCatchingLoading {
             repository.createReview(bookingId, rating, comment)
-            _state.value = _state.value.copy(reviews = repository.reviews())
+            _state.value = _state.value.copy(
+                reviews = repository.reviews(),
+                reviewPromptBookingId =
+                    if (_state.value.reviewPromptBookingId == bookingId) null
+                    else _state.value.reviewPromptBookingId,
+            )
         }
     }
 
@@ -537,11 +804,34 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
             if (!body.isNullOrBlank()) {
                 runCatching {
                     val detail = JSONObject(body).opt("detail")
-                    if (detail is String && detail.isNotBlank()) return detail
+                    if (detail is String && detail.isNotBlank()) {
+                        if (throwable.code() == 402 || detail == "insufficient_balance") {
+                            return "Недостаточно средств на балансе. Пополните кошелёк и повторите оплату."
+                        }
+                        return mapApiDetailToRu(detail)
+                    }
                 }
+            }
+            if (throwable.code() == 402) {
+                return "Недостаточно средств на балансе. Пополните кошелёк и повторите оплату."
             }
             return "Ошибка сервера: ${throwable.code()}"
         }
         return throwable.message ?: "Неизвестная ошибка"
+    }
+
+    private fun mapApiDetailToRu(detail: String): String = when (detail) {
+        "no_walker_assigned" ->
+            "К заказу не назначен выгульщик. Владелец должен выбрать исполнителя среди откликов."
+        "invalid_booking_status" ->
+            "Сейчас нельзя начать прогулку: заказ должен быть «Подтверждён» или «В процессе». Сначала подтвердите заказ или дождитесь выбора владельца."
+        "booking_service_unavailable" ->
+            "Сервис заказов временно недоступен (tracking не достучался до booking). Проверьте, что все микросервисы запущены."
+        "invalid_transition" ->
+            "Такое изменение статуса сейчас недопустимо."
+        "deprecated_use_applications_choose" ->
+            "Это действие устарело: откликнитесь на заявку или подтвердите назначенный заказ."
+        "forbidden" -> "Нет прав на это действие (войдите как назначенный выгульщик)."
+        else -> detail
     }
 }
