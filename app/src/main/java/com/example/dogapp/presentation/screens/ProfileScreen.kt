@@ -176,6 +176,22 @@ fun ProfileScreen(
             .trim()
             .ifBlank { "—" }
     }
+    val isWalkerRole = remember(user) { user?.role?.key.equals("walker", ignoreCase = true) }
+    /** Для владельца — отзывы, которые он написал; для выгульщика — отзывы о нём (из профиля walker). */
+    val profileReviewsCount = remember(isWalkerRole, state.myWalkerProfile, state.reviews) {
+        if (isWalkerRole) state.myWalkerProfile?.reviews_count ?: 0 else state.reviews.size
+    }
+    val profilePaymentsCount = remember(isWalkerRole, state.payments, user?.id) {
+        val uid = user?.id
+        if (uid.isNullOrBlank()) return@remember state.payments.size
+        val hasActorIds = state.payments.any { it.payer_owner_id != null || it.beneficiary_walker_user_id != null }
+        if (!hasActorIds) return@remember state.payments.size
+        if (isWalkerRole) {
+            state.payments.count { it.beneficiary_walker_user_id?.equals(uid, ignoreCase = true) == true }
+        } else {
+            state.payments.count { it.payer_owner_id?.equals(uid, ignoreCase = true) == true }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -393,12 +409,12 @@ fun ProfileScreen(
                     ProfileInfoRow(
                         icon = Icons.Outlined.Payments,
                         label = stringResource(R.string.profile_payments),
-                        value = stringResource(R.string.profile_count_format, state.payments.size),
+                        value = stringResource(R.string.profile_count_format, profilePaymentsCount),
                     )
                     ProfileInfoRow(
                         icon = Icons.Outlined.RateReview,
                         label = stringResource(R.string.profile_reviews),
-                        value = stringResource(R.string.profile_count_format, state.reviews.size),
+                        value = stringResource(R.string.profile_count_format, profileReviewsCount),
                         isLast = true,
                     )
                 } else if (editing.value) {
@@ -458,7 +474,6 @@ fun ProfileScreen(
                 }
 
                 if (!editing.value && user != null) {
-                    val isWalkerRole = user.role?.key.equals("walker", ignoreCase = true)
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()

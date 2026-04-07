@@ -2,7 +2,6 @@ package com.example.dogapp.presentation.navigation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -10,18 +9,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.Alignment
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -467,10 +462,11 @@ fun DogAppRoot() {
                 }
                 composable("dog/add") {
                     DogAddScreen(
+                        onBack = { navController.popBackStack() },
                         onAdd = { name, breed, birthDate, weightKg, gender, vaccinated, sterilized, aggressive, behavior, medical ->
                             vm.addDog(name, breed, birthDate, weightKg, gender, vaccinated, sterilized, aggressive, behavior, medical)
                             navController.popBackStack()
-                        }
+                        },
                     )
                 }
                 composable("dog/{id}") { entry ->
@@ -569,36 +565,12 @@ fun DogAppRoot() {
             }
         }
             state.reviewPromptBookingId?.let { bid ->
-                var reviewRating by remember(bid) { mutableIntStateOf(5) }
-                var reviewText by remember(bid) { mutableStateOf("Отличная прогулка") }
-                AlertDialog(
-                    onDismissRequest = { vm.clearReviewPrompt() },
-                    title = { Text("Отзыв о выгульщике") },
-                    text = {
-                        Column {
-                            OutlinedTextField(
-                                value = reviewRating.toString(),
-                                onValueChange = {
-                                    reviewRating = it.toIntOrNull()?.coerceIn(1, 5) ?: reviewRating
-                                },
-                                label = { Text("Оценка 1–5") },
-                                singleLine = true,
-                            )
-                            OutlinedTextField(
-                                value = reviewText,
-                                onValueChange = { reviewText = it },
-                                label = { Text("Комментарий") },
-                                minLines = 2,
-                            )
-                        }
-                    },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            vm.reviewBooking(bid, reviewRating, reviewText)
-                        }) { Text("Отправить") }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { vm.clearReviewPrompt() }) { Text("Позже") }
+                ReviewPromptDialog(
+                    bookingId = bid,
+                    onDismiss = vm::clearReviewPrompt,
+                    onSubmit = { id, rating, comment ->
+                        vm.reviewBooking(id, rating, comment)
+                        Unit
                     },
                 )
             }

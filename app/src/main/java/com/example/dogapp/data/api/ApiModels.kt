@@ -325,6 +325,8 @@ data class PaymentDto(
     val amount: Double,
     val currency: String,
     val status: String,
+    val payer_owner_id: String? = null,
+    val beneficiary_walker_user_id: String? = null,
 )
 
 data class PaymentIntentCreateDto(val booking_id: String)

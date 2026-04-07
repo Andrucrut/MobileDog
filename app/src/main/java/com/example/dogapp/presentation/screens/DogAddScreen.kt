@@ -9,19 +9,26 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -44,6 +51,7 @@ import com.example.dogapp.ui.theme.PetProfileColors
 
 @Composable
 fun DogAddScreen(
+    onBack: () -> Unit,
     onAdd: (String, String?, String?, Double?, String?, Boolean, Boolean, Boolean, String?, String?) -> Unit,
 ) {
     val name = remember { mutableStateOf("") }
@@ -77,11 +85,35 @@ fun DogAddScreen(
                         listOf(PetProfileColors.CardTeal, PetProfileColors.CardTealDark),
                     ),
                 )
-                .padding(horizontal = 16.dp, vertical = 18.dp),
+                .statusBarsPadding()
+                .padding(horizontal = 4.dp, vertical = 8.dp),
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("Новый питомец", style = MaterialTheme.typography.headlineSmall, color = Color.White, fontWeight = FontWeight.Bold)
-                Text("Добавьте данные и фото", color = Color.White.copy(alpha = 0.9f))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onBack) {
+                    Surface(
+                        shape = CircleShape,
+                        color = Color.White.copy(alpha = 0.95f),
+                        shadowElevation = 3.dp,
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Назад",
+                            modifier = Modifier.padding(8.dp),
+                            tint = PetProfileColors.CardTealDark,
+                        )
+                    }
+                }
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text("Новый питомец", style = MaterialTheme.typography.headlineSmall, color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("Добавьте данные и фото", color = Color.White.copy(alpha = 0.9f))
+                }
+                Spacer(Modifier.size(48.dp))
             }
         }
         Card(

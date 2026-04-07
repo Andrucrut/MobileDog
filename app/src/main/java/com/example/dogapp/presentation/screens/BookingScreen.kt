@@ -65,6 +65,24 @@ fun BookingScreen(
     val isWalker = state.user?.role?.key.equals("walker", ignoreCase = true)
     val bookings = (if (isWalker) state.walkerBookings else state.ownerBookings)
         .filter { !it.status.equals("COMPLETED", ignoreCase = true) }
+    val displayBookings = remember(
+        isWalker,
+        bookings,
+        state.applicationsByBooking,
+        state.user?.id,
+        state.myWalkerProfileId,
+    ) {
+        if (isWalker) {
+            sortWalkerActiveBookingsForUi(
+                bookings,
+                state.applicationsByBooking,
+                state.user?.id,
+                state.myWalkerProfileId,
+            )
+        } else {
+            bookings
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -117,7 +135,7 @@ fun BookingScreen(
             }
         }
 
-        if (bookings.isEmpty()) {
+        if (displayBookings.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -152,15 +170,17 @@ fun BookingScreen(
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 item { Spacer(Modifier.height(8.dp)) }
-                items(bookings, key = { it.id }) { b ->
+                items(displayBookings, key = { it.id }) { b ->
                     val dogName = state.dogs.firstOrNull { it.id == b.dog_id }?.name ?: "Питомец"
                     var reviewText by remember(b.id) { mutableStateOf("Отличная прогулка") }
                     val apps = state.applicationsByBooking[b.id].orEmpty()
                     val hasWalkerActiveApplication =
                         isWalker && walkerHasActiveOwnApplication(apps, state.user?.id)
+                    val assignedToWalker = isWalker && walkerBookingAssignedToMe(b, state.myWalkerProfileId)
                     BookingCard(
                         booking = b,
                         isWalker = isWalker,
+                        assignedToWalker = assignedToWalker,
                         hasWalkerActiveApplication = hasWalkerActiveApplication,
                         dogName = dogName,
                         reviewText = reviewText,
@@ -181,6 +201,7 @@ fun BookingScreen(
 private fun BookingCard(
     booking: BookingDto,
     isWalker: Boolean,
+    assignedToWalker: Boolean,
     hasWalkerActiveApplication: Boolean,
     dogName: String,
     reviewText: String,
@@ -224,7 +245,20 @@ private fun BookingCard(
                             color = statusUi.onContainer,
                         )
                     }
-                    if (isWalker && booking.status.equals("PENDING", ignoreCase = true) && hasWalkerActiveApplication) {
+                    if (isWalker && assignedToWalker) {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFF1565C0).copy(alpha = 0.12f),
+                        ) {
+                            Text(
+                                text = "Ваш заказ",
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFF1565C0),
+                            )
+                        }
+                    } else if (isWalker && booking.status.equals("PENDING", ignoreCase = true) && hasWalkerActiveApplication) {
                         Surface(
                             shape = RoundedCornerShape(10.dp),
                             color = Color(0xFFE0F2F1),
@@ -471,6 +505,42 @@ private fun formatScheduledRu(iso: String): String {
     } catch (_: Exception) {
         iso
     }
+}
+
+fun sortWalkerActiveBookingsForUi(
+    bookings: List<BookingDto>,
+    applicationsByBooking: Map<String, List<BookingApplicationDto>>,
+    userId: String?,
+    myWalkerProfileId: String?,
+): List<BookingDto> {
+    fun instantOf(b: BookingDto) = try {
+        Instant.parse(b.scheduled_at)
+    } catch (_: Exception) {
+        Instant.EPOCH
+    }
+    fun priority(b: BookingDto): Int {
+        val assigned = walkerBookingAssignedToMe(b, myWalkerProfileId)
+        val st = b.status.uppercase()
+        if (assigned && st in setOf("PENDING", "CONFIRMED", "IN_PROGRESS", "AWAITING_OWNER_PAYMENT")) {
+            return 0
+        }
+        val responded = userId != null && walkerHasActiveOwnApplication(
+            applicationsByBooking[b.id].orEmpty(),
+            userId,
+        )
+        if (st == "PENDING" && responded) {
+            return 1
+        }
+        return 2
+    }
+    return bookings.sortedWith(
+        compareBy({ priority(it) }, { instantOf(it) }),
+    )
+}
+
+fun walkerBookingAssignedToMe(booking: BookingDto, myWalkerProfileId: String?): Boolean {
+    if (myWalkerProfileId.isNullOrBlank() || booking.walker_id.isNullOrBlank()) return false
+    return booking.walker_id == myWalkerProfileId
 }
 
 private fun walkerHasActiveOwnApplication(

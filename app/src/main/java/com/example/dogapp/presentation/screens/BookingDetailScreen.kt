@@ -449,8 +449,13 @@ fun BookingDetailScreen(
                                 .height(220.dp),
                         )
                         if (route == null) {
+                            val noRouteHint = if (booking.status.equals("COMPLETED", ignoreCase = true)) {
+                                "Маршрут для этого заказа недоступен."
+                            } else {
+                                "Маршрут появится после начала прогулки или обновите ниже."
+                            }
                             Text(
-                                "Маршрут появится после начала прогулки или обновите ниже.",
+                                noRouteHint,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -476,7 +481,9 @@ fun BookingDetailScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
-                        OutlinedButton(onClick = onRefreshRoute) { Text("Обновить маршрут") }
+                        if (!booking.status.equals("COMPLETED", ignoreCase = true)) {
+                            OutlinedButton(onClick = onRefreshRoute) { Text("Обновить маршрут") }
+                        }
                         if (canOpenWalk) {
                             Button(
                                 onClick = onOpenWalk,

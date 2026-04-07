@@ -50,10 +50,20 @@ fun MapScreen(
     val zoomOut = remember { mutableStateOf(false) }
 
     val isWalker = state.user?.role?.key.equals("walker", ignoreCase = true)
-    val mapBookings = if (isWalker) state.walkerBookings else state.ownerBookings
-    val bookingsOnMap = mapBookings.filter {
-        !it.status.equals("COMPLETED", ignoreCase = true) &&
-            it.meeting_latitude != null && it.meeting_longitude != null
+    val mapBookingsRaw = if (isWalker) state.walkerBookings else state.ownerBookings
+    val mapBookings = mapBookingsRaw.filter { !it.status.equals("COMPLETED", ignoreCase = true) }
+    val mapBookingsOrdered = if (isWalker) {
+        sortWalkerActiveBookingsForUi(
+            mapBookings,
+            state.applicationsByBooking,
+            state.user?.id,
+            state.myWalkerProfileId,
+        )
+    } else {
+        mapBookings
+    }
+    val bookingsOnMap = mapBookingsOrdered.filter {
+        it.meeting_latitude != null && it.meeting_longitude != null
     }
     val groupedByLocation = bookingsOnMap.groupBy { b ->
         geoGroupKey(b.meeting_latitude!!, b.meeting_longitude!!)
@@ -146,6 +156,16 @@ fun MapScreen(
         }
 
         clusterBookings.value?.let { list ->
+            val clusterOrdered = if (isWalker) {
+                sortWalkerActiveBookingsForUi(
+                    list,
+                    state.applicationsByBooking,
+                    state.user?.id,
+                    state.myWalkerProfileId,
+                )
+            } else {
+                list.sortedBy { it.scheduled_at }
+            }
             AlertDialog(
                 onDismissRequest = { clusterBookings.value = null },
                 title = {
@@ -156,7 +176,7 @@ fun MapScreen(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        items(list, key = { it.id }) { b ->
+                        items(clusterOrdered, key = { it.id }) { b ->
                             val dogName = state.dogs.firstOrNull { it.id == b.dog_id }?.name ?: "—"
                             Card(modifier = Modifier.fillMaxWidth()) {
                                 Column(

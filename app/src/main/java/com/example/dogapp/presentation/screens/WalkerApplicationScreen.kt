@@ -116,7 +116,7 @@ fun WalkerApplicationScreen(
                 ) {
                     Text("Данные выгульщика", style = MaterialTheme.typography.titleMedium)
                     Text("Рейтинг: ${walker?.rating?.let { "%.1f".format(it) } ?: "—"}")
-                    Text("Отзывов: ${walker?.reviews_count ?: 0}")
+                    Text("Отзывов: ${maxOf(walker?.reviews_count ?: 0, reviews.size)}")
                     Text("Опыт: ${walker?.experience_years ?: 0} лет")
                     Text("Цена за час: ${walker?.price_per_hour?.let { "%.0f ₽".format(it) } ?: "—"}")
                     Text("Радиус: ${walker?.service_radius_km?.let { "%.1f км".format(it) } ?: "—"}")

@@ -47,8 +47,12 @@ data class MainState(
     val trackPoints: List<TrackPointDto> = emptyList(),
     val routeByBooking: Map<String, WalkRouteResponseDto?> = emptyMap(),
     val applicationsByBooking: Map<String, List<BookingApplicationDto>> = emptyMap(),
+    /** id профиля выгульщика (WalkerDto.id) для сопоставления с booking.walker_id */
+    val myWalkerProfileId: String? = null,
     val walkerProfileById: Map<String, WalkerDto> = emptyMap(),
     val walkerReviewsById: Map<String, List<WalkerReviewDto>> = emptyMap(),
+    /** Профиль текущего пользователя с ролью walker (для счётчиков в профиле — отзывы о выгульщике, не «мои отзывы как владелец»). */
+    val myWalkerProfile: WalkerDto? = null,
     val conversations: List<ConversationDto> = emptyList(),
     val chatMessagesByConversation: Map<String, List<ChatMessageDto>> = emptyMap(),
     val chatCursorByConversation: Map<String, String?> = emptyMap(),
@@ -124,8 +128,10 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
     fun loadAll() = viewModelScope.launch {
         runCatchingLoading {
             val me = repository.me()
-            if (me.role?.key.equals("walker", ignoreCase = true)) {
-                runCatching { repository.ensureWalkerProfileExistsForCurrentUser() }
+            val myWalkerProfile = if (me.role?.key.equals("walker", ignoreCase = true)) {
+                runCatching { repository.ensureWalkerProfileExistsForCurrentUser() }.getOrNull()
+            } else {
+                null
             }
             val dogs = repository.dogs()
             val walkers = repository.walkers(59.9343, 30.3351)
@@ -159,6 +165,7 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
                 }
             _state.value = _state.value.copy(
                 user = me,
+                myWalkerProfileId = myWalkerProfile?.id,
                 dogs = dogs,
                 walkers = walkers,
                 ownerBookings = ownerBookings,
@@ -166,6 +173,7 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
                 notifications = notifications,
                 reviews = reviews,
                 payments = payments,
+                myWalkerProfile = myWalkerProfile,
                 wallet = wallet,
                 withdrawals = withdrawals,
                 dogLocalPhotos = repository.dogPhotoUriMap(),
@@ -185,9 +193,6 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
         val keepNotice = _state.value.notice
         runCatching {
             val me = repository.me()
-            if (me.role?.key.equals("walker", ignoreCase = true)) {
-                runCatching { repository.ensureWalkerProfileExistsForCurrentUser() }
-            }
             val ownerBookings = repository.ownerBookingsWithCoordinates()
             val walkerBookings = if (me.role?.key.equals("walker", ignoreCase = true)) {
                 val open = repository.openBookingsWithCoordinates()
@@ -197,11 +202,18 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
                 repository.walkerBookings()
             }
             val wallet = runCatching { repository.myWallet() }.getOrNull()
+            val myWalkerProfile = if (me.role?.key.equals("walker", ignoreCase = true)) {
+                runCatching { repository.ensureWalkerProfileExistsForCurrentUser() }.getOrNull()
+            } else {
+                null
+            }
             _state.value = _state.value.copy(
                 user = me,
                 ownerBookings = ownerBookings,
                 walkerBookings = walkerBookings,
                 wallet = wallet,
+                myWalkerProfileId = myWalkerProfile?.id ?: _state.value.myWalkerProfileId,
+                myWalkerProfile = myWalkerProfile ?: _state.value.myWalkerProfile,
                 error = keepError,
                 notice = keepNotice,
             )
