@@ -1,6 +1,7 @@
 package com.example.dogapp.di
 
 import android.content.Context
+import com.example.dogapp.BuildConfig
 import com.example.dogapp.data.api.ApiService
 import com.example.dogapp.data.api.GeoApiService
 import com.example.dogapp.data.local.DogPhotoStorage
@@ -14,8 +15,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object AppContainer {
-    /** Монолит DogApp (uvicorn main:app --port 9000). Эмулятор → хост: 10.0.2.2. */
-    private const val BASE_URL = "http://10.0.2.2:9000/"
+    /** База API: `BuildConfig.API_BASE_URL` (debug → 10.0.2.2:9000, release → Render). */
+    private val baseUrl: String get() = BuildConfig.API_BASE_URL
     private const val GEO_BASE_URL = "https://nominatim.openstreetmap.org/"
 
     private fun api(): ApiService {
@@ -23,7 +24,7 @@ object AppContainer {
         val client = OkHttpClient.Builder().addInterceptor(logger).build()
 
         return Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(baseUrl)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
