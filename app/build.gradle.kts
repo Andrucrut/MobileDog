@@ -16,7 +16,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        // Продакшен (Render). Debug переопределяется ниже → эмулятор 10.0.2.2:9000.
+        // База API (Render). Один URL для debug и release; локальный бэкенд — через product flavor при необходимости.
         buildConfigField(
             "String",
             "API_BASE_URL",
@@ -25,13 +25,6 @@ android {
     }
 
     buildTypes {
-        debug {
-            buildConfigField(
-                "String",
-                "API_BASE_URL",
-                "\"http://10.0.2.2:9000/\"",
-            )
-        }
         release {
             isMinifyEnabled = false
             proguardFiles(

@@ -15,7 +15,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object AppContainer {
-    /** База API: `BuildConfig.API_BASE_URL` (debug → 10.0.2.2:9000, release → Render). */
+    /** База API: `BuildConfig.API_BASE_URL` (задаётся в `app/build.gradle.kts`). */
     private val baseUrl: String get() = BuildConfig.API_BASE_URL
     private const val GEO_BASE_URL = "https://nominatim.openstreetmap.org/"
 
