@@ -367,14 +367,18 @@ fun BookingDetailScreen(
                                                 style = MaterialTheme.typography.titleSmall,
                                                 fontWeight = FontWeight.Medium,
                                             )
-                                            Text(
-                                                text = "Открыть отклик",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            )
+                                            if (isOwner) {
+                                                Text(
+                                                    text = "Открыть отклик",
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                )
+                                            }
                                         }
-                                        IconButton(onClick = { onOpenApplication(app.id) }) {
-                                            Icon(Icons.Outlined.ChevronRight, contentDescription = "Открыть отклик")
+                                        if (isOwner) {
+                                            IconButton(onClick = { onOpenApplication(app.id) }) {
+                                                Icon(Icons.Outlined.ChevronRight, contentDescription = "Открыть отклик")
+                                            }
                                         }
                                     }
                                     Text("Отклик #${app.id.take(8)}", fontWeight = FontWeight.SemiBold)

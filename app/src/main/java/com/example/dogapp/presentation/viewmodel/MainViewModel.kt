@@ -124,7 +124,7 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
 
     fun logout() = viewModelScope.launch {
         repository.logout()
-        _state.value = MainState(authorized = false)
+        _state.value = loggedOutState()
     }
 
     fun loadAll() = viewModelScope.launch {
@@ -560,13 +560,7 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
                 .onFailure { throwable ->
                     if (throwable is HttpException && throwable.code() == 401) {
                         repository.logout()
-                        _state.value = MainState(
-                            authorized = false,
-                            darkThemeEnabled = _state.value.darkThemeEnabled,
-                            compactUiEnabled = _state.value.compactUiEnabled,
-                            hideNotificationsPreview = _state.value.hideNotificationsPreview,
-                            error = humanError(throwable),
-                        )
+                        _state.value = loggedOutState(error = humanError(throwable))
                     } else {
                         _state.value = _state.value.copy(error = humanError(throwable), notice = null)
                     }
@@ -650,13 +644,7 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
                 withContext(Dispatchers.Main) {
                     if (throwable is HttpException && throwable.code() == 401) {
                         repository.logout()
-                        _state.value = MainState(
-                            authorized = false,
-                            darkThemeEnabled = _state.value.darkThemeEnabled,
-                            compactUiEnabled = _state.value.compactUiEnabled,
-                            hideNotificationsPreview = _state.value.hideNotificationsPreview,
-                            error = humanError(throwable),
-                        )
+                        _state.value = loggedOutState(error = humanError(throwable))
                     } else {
                         _state.value = _state.value.copy(error = humanError(throwable), notice = null)
                     }
@@ -832,13 +820,7 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
             .onFailure { throwable ->
                 if (throwable is HttpException && throwable.code() == 401) {
                     repository.logout()
-                    _state.value = MainState(
-                        authorized = false,
-                        darkThemeEnabled = _state.value.darkThemeEnabled,
-                        compactUiEnabled = _state.value.compactUiEnabled,
-                        hideNotificationsPreview = _state.value.hideNotificationsPreview,
-                        error = humanError(throwable),
-                    )
+                    _state.value = loggedOutState(error = humanError(throwable))
                 } else {
                     _state.value = _state.value.copy(error = humanError(throwable), notice = null)
                 }
@@ -876,11 +858,31 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
             "Сейчас нельзя начать прогулку: заказ должен быть «Подтверждён» или «В процессе». Сначала подтвердите заказ или дождитесь выбора владельца."
         "booking_service_unavailable" ->
             "Сервис заказов временно недоступен (tracking не достучался до booking). Проверьте, что все микросервисы запущены."
+        "payment_unreachable" ->
+            "Сервис оплаты временно недоступен. Проверьте, что payment-сервис запущен, и повторите оплату."
         "invalid_transition" ->
             "Такое изменение статуса сейчас недопустимо."
         "deprecated_use_applications_choose" ->
             "Это действие устарело: откликнитесь на заявку или подтвердите назначенный заказ."
         "forbidden" -> "Нет прав на это действие (войдите как назначенный выгульщик)."
+        "walk_session_finished" ->
+            "По этому заказу прогулка уже завершена или отменена. Начать заново нельзя."
+        "walk_session_conflict" ->
+            "Сессия прогулки уже создаётся или существует. Закройте экран и откройте снова, затем повторите."
         else -> detail
+    }
+
+    private fun loggedOutState(error: String? = null): MainState {
+        val current = _state.value
+        return MainState(
+            startupChecked = true,
+            serverReady = true,
+            authorized = false,
+            loading = false,
+            error = error,
+            darkThemeEnabled = current.darkThemeEnabled,
+            compactUiEnabled = current.compactUiEnabled,
+            hideNotificationsPreview = current.hideNotificationsPreview,
+        )
     }
 }

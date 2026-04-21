@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TextButton
@@ -97,12 +98,14 @@ fun DogAppRoot() {
                 if (pendingOwnerPayment.isNotEmpty()) {
                     val payBookingId = pendingOwnerPayment.first().id
                     Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .statusBarsPadding(),
                         color = MaterialTheme.colorScheme.secondaryContainer,
                         tonalElevation = 3.dp,
                     ) {
                         Row(
                             modifier = Modifier
-                                .fillMaxWidth()
                                 .padding(horizontal = 14.dp, vertical = 10.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
@@ -360,6 +363,11 @@ fun DogAppRoot() {
                 composable("booking/{bookingId}/application/{applicationId}") { entry ->
                     val bookingId = entry.arguments?.getString("bookingId") ?: return@composable
                     val applicationId = entry.arguments?.getString("applicationId") ?: return@composable
+                    val isOwnerApp = state.user?.role?.key.equals("owner", ignoreCase = true)
+                    if (!isOwnerApp) {
+                        LaunchedEffect(Unit) { navController.popBackStack() }
+                        return@composable
+                    }
                     val application = state.applicationsByBooking[bookingId].orEmpty().firstOrNull { it.id == applicationId }
                     val walkerId = application?.walker_id
                     val walker = state.walkerProfileById[walkerId]
