@@ -34,6 +34,8 @@ data class MainState(
     val dogs: List<DogDto> = emptyList(),
     val walkers: List<WalkerDto> = emptyList(),
     val ownerBookings: List<BookingDto> = emptyList(),
+    /** Открытые заявки с рынка — для карты владельца (как у выгульщика: все доступные точки). */
+    val openBookings: List<BookingDto> = emptyList(),
     val walkerBookings: List<BookingDto> = emptyList(),
     val notifications: List<NotificationDto> = emptyList(),
     val reviews: List<ReviewDto> = emptyList(),
@@ -136,12 +138,17 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
             val dogs = repository.dogs()
             val walkers = repository.walkers(59.9343, 30.3351)
             val ownerBookings = repository.ownerBookingsWithCoordinates()
+            val openBookings = if (!me.role?.key.equals("walker", ignoreCase = true)) {
+                runCatching { repository.openBookingsWithCoordinates() }.getOrDefault(emptyList())
+            } else {
+                emptyList()
+            }
             val walkerBookings = if (me.role?.key.equals("walker", ignoreCase = true)) {
                 val open = repository.openBookingsWithCoordinates()
                 val mine = repository.walkerBookings().map { repository.enrichBookingCoordinates(it) }
                 (open + mine).distinctBy { it.id }
             } else {
-                repository.walkerBookings()
+                runCatching { repository.walkerBookings() }.getOrDefault(emptyList())
             }
             val notifications = repository.notifications()
             val reviews = repository.reviews()
@@ -169,6 +176,7 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
                 dogs = dogs,
                 walkers = walkers,
                 ownerBookings = ownerBookings,
+                openBookings = openBookings,
                 walkerBookings = walkerBookings,
                 notifications = notifications,
                 reviews = reviews,
@@ -194,12 +202,17 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
         runCatching {
             val me = repository.me()
             val ownerBookings = repository.ownerBookingsWithCoordinates()
+            val openBookings = if (!me.role?.key.equals("walker", ignoreCase = true)) {
+                runCatching { repository.openBookingsWithCoordinates() }.getOrDefault(emptyList())
+            } else {
+                emptyList()
+            }
             val walkerBookings = if (me.role?.key.equals("walker", ignoreCase = true)) {
                 val open = repository.openBookingsWithCoordinates()
                 val mine = repository.walkerBookings().map { repository.enrichBookingCoordinates(it) }
                 (open + mine).distinctBy { it.id }
             } else {
-                repository.walkerBookings()
+                runCatching { repository.walkerBookings() }.getOrDefault(emptyList())
             }
             val wallet = runCatching { repository.myWallet() }.getOrNull()
             val myWalkerProfile = if (me.role?.key.equals("walker", ignoreCase = true)) {
@@ -210,6 +223,7 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
             _state.value = _state.value.copy(
                 user = me,
                 ownerBookings = ownerBookings,
+                openBookings = openBookings,
                 walkerBookings = walkerBookings,
                 wallet = wallet,
                 myWalkerProfileId = myWalkerProfile?.id ?: _state.value.myWalkerProfileId,
@@ -284,7 +298,10 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
         }
     }
 
-    fun createBooking(
+    /**
+     * Создание заявки; вызывать из корутины. Возвращает true только после успешного ответа сервера.
+     */
+    suspend fun createBooking(
         dogId: String,
         durationMinutes: Int,
         addressCountry: String,
@@ -296,10 +313,10 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
         meetingLng: Double?,
         desiredPrice: String,
         extraParams: String,
-    ) = viewModelScope.launch {
-        runCatchingLoading {
-            val dt = Instant.now().plusSeconds(3600).atOffset(ZoneOffset.UTC).toString()
-            val booking = repository.createBooking(
+    ): Boolean {
+        val dt = Instant.now().plusSeconds(3600).atOffset(ZoneOffset.UTC).toString()
+        return runCatchingLoadingResult {
+            repository.createBooking(
                 dogId = dogId,
                 durationMinutes = durationMinutes,
                 scheduledAtIso = dt,
@@ -313,7 +330,10 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
                 desiredPrice = desiredPrice,
                 extraParams = extraParams,
             )
-            _state.value = _state.value.copy(ownerBookings = repository.ownerBookingsWithCoordinates())
+            _state.value = _state.value.copy(
+                ownerBookings = repository.ownerBookingsWithCoordinates(),
+                openBookings = ownerOpenBookingsSnapshot(),
+            )
         }
     }
 
@@ -358,7 +378,7 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
     /** Устаревший /accept на бэкенде отключён; для открытых заявок — отклик, для назначенного выгульщика — PATCH CONFIRMED. */
     fun applyAsWalker(bookingId: String) = viewModelScope.launch {
         runCatchingLoading {
-            val b = (_state.value.walkerBookings + _state.value.ownerBookings).firstOrNull { it.id == bookingId }
+            val b = (_state.value.walkerBookings + _state.value.ownerBookings + _state.value.openBookings).firstOrNull { it.id == bookingId }
             if (!b?.walker_id.isNullOrBlank()) {
                 repository.updateBookingStatus(bookingId, "CONFIRMED")
             } else {
@@ -367,6 +387,7 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
             _state.value = _state.value.copy(
                 walkerBookings = (repository.openBookingsWithCoordinates() + repository.walkerBookings().map { repository.enrichBookingCoordinates(it) }).distinctBy { it.id },
                 ownerBookings = repository.ownerBookingsWithCoordinates(),
+                openBookings = ownerOpenBookingsSnapshot(),
             )
         }
     }
@@ -377,6 +398,7 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
             _state.value = _state.value.copy(
                 walkerBookings = (repository.openBookingsWithCoordinates() + repository.walkerBookings().map { repository.enrichBookingCoordinates(it) }).distinctBy { it.id },
                 ownerBookings = repository.ownerBookingsWithCoordinates(),
+                openBookings = ownerOpenBookingsSnapshot(),
             )
         }
     }
@@ -427,6 +449,7 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
             val chosen = repository.chooseBookingApplication(bookingId, applicationId)
             _state.value = _state.value.copy(
                 ownerBookings = repository.ownerBookingsWithCoordinates(),
+                openBookings = ownerOpenBookingsSnapshot(),
                 walkerBookings = (repository.openBookingsWithCoordinates() + repository.walkerBookings().map { repository.enrichBookingCoordinates(it) }).distinctBy { it.id },
                 notice = "Заявка принята",
             )
@@ -558,6 +581,7 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
             val points = repository.points(session.id)
             val booking = _state.value.walkerBookings.firstOrNull { it.id == bookingId }
                 ?: _state.value.ownerBookings.firstOrNull { it.id == bookingId }
+                ?: _state.value.openBookings.firstOrNull { it.id == bookingId }
             if (booking?.status?.equals("CONFIRMED", ignoreCase = true) == true) {
                 runCatching { repository.updateBookingStatus(bookingId, "IN_PROGRESS") }
             }
@@ -681,7 +705,7 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
     }
 
     private suspend fun pushBookingToAwaitingOwnerPayment(bookingId: String) {
-        val st = (_state.value.walkerBookings + _state.value.ownerBookings)
+        val st = (_state.value.walkerBookings + _state.value.ownerBookings + _state.value.openBookings)
             .firstOrNull { it.id == bookingId }?.status?.uppercase()
         val direct = runCatching { repository.updateBookingStatus(bookingId, "AWAITING_OWNER_PAYMENT") }
         if (direct.isSuccess) return
@@ -704,6 +728,7 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
             _state.value = _state.value.copy(
                 user = me,
                 ownerBookings = ownerBookings,
+                openBookings = ownerOpenBookingsSnapshot(),
                 wallet = wallet,
                 reviewPromptBookingId = bookingId,
             )
@@ -790,9 +815,20 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
         _state.value = _state.value.copy(hideNotificationsPreview = enabled)
     }
 
+    /** Открытые заявки для карты владельца; у выгульщика не запрашиваем. */
+    private suspend fun ownerOpenBookingsSnapshot(): List<BookingDto> {
+        if (_state.value.user?.role?.key.equals("walker", ignoreCase = true)) return emptyList()
+        return runCatching { repository.openBookingsWithCoordinates() }.getOrDefault(emptyList())
+    }
+
     private suspend fun runCatchingLoading(block: suspend () -> Unit) {
+        runCatchingLoadingResult { block() }
+    }
+
+    /** Как [runCatchingLoading], но возвращает успех (для ожидания результата из UI). */
+    private suspend fun runCatchingLoadingResult(block: suspend () -> Unit): Boolean {
         _state.value = _state.value.copy(loading = true, error = null, notice = null)
-        runCatching { block() }
+        val result = runCatching { block() }
             .onFailure { throwable ->
                 if (throwable is HttpException && throwable.code() == 401) {
                     repository.logout()
@@ -808,6 +844,7 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
                 }
             }
         _state.value = _state.value.copy(loading = false)
+        return result.isSuccess
     }
 
     private fun humanError(throwable: Throwable): String {

@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.dogapp.data.api.BookingDto
+import com.example.dogapp.data.api.displayPriceRub
 import com.example.dogapp.data.api.WalkRouteResponseDto
 import com.example.dogapp.presentation.viewmodel.MainState
 import com.example.dogapp.ui.theme.PetProfileColors
@@ -202,7 +203,7 @@ private fun HistoryWalkCard(
                     }
                 }
                 Text(
-                    text = "%.0f ₽".format(booking.price),
+                    text = "%.0f ₽".format(booking.displayPriceRub()),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = PetProfileColors.CardTealDark,

@@ -46,6 +46,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.dogapp.data.api.BookingApplicationDto
 import com.example.dogapp.data.api.BookingDto
+import com.example.dogapp.data.api.displayPriceRub
 import com.example.dogapp.presentation.viewmodel.MainState
 import com.example.dogapp.ui.theme.PetProfileColors
 import java.time.Instant
@@ -274,7 +275,7 @@ private fun BookingCard(
                     }
                 }
                 Text(
-                    text = "%.0f ₽".format(booking.price),
+                    text = "%.0f ₽".format(booking.displayPriceRub()),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = PetProfileColors.CardTealDark,

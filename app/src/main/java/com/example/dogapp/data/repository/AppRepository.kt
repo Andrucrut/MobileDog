@@ -6,8 +6,10 @@ import com.example.dogapp.data.local.DogPhotoStorage
 import retrofit2.HttpException
 import com.example.dogapp.data.local.SettingsStore
 import com.example.dogapp.data.local.TokenStore
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
-import java.util.LinkedHashMap
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class AppRepository(
     private val api: ApiService,
@@ -16,6 +18,42 @@ class AppRepository(
     private val settingsStore: SettingsStore,
     private val dogPhotoStorage: DogPhotoStorage,
 ) {
+    /** Публичный Nominatim: не больше ~1 запроса/с; сериализуем все обращения к гео-API. */
+    private val nominatimMutex = Mutex()
+    private var lastNominatimRequestAtMs: Long = 0L
+
+    private companion object {
+        const val NOMINATIM_MIN_GAP_MS = 1_100L
+        const val NOMINATIM_429_RETRY_MS = 2_500L
+    }
+
+    /**
+     * Один вызов к Nominatim с паузой от предыдущего запроса и одним повтором при HTTP 429.
+     */
+    private suspend fun <T> nominatimCall(default: T, block: suspend () -> T): T {
+        return nominatimMutex.withLock {
+            val now = System.currentTimeMillis()
+            if (lastNominatimRequestAtMs != 0L) {
+                val wait = NOMINATIM_MIN_GAP_MS - (now - lastNominatimRequestAtMs)
+                if (wait > 0) delay(wait)
+            }
+            suspend fun once(): Result<T> = runCatching { block() }
+            var result = once()
+            if (result.isFailure) {
+                val e = result.exceptionOrNull()
+                if (e is HttpException && e.code() == 429) {
+                    delay(NOMINATIM_429_RETRY_MS)
+                    result = once()
+                }
+            }
+            lastNominatimRequestAtMs = System.currentTimeMillis()
+            result.getOrElse { default }
+        }
+    }
+
+    private suspend fun nominatimSearchList(block: suspend () -> List<NominatimPlaceDto>): List<NominatimPlaceDto> =
+        nominatimCall(emptyList(), block)
+
     fun dogPhotoUriMap(): Map<String, String> = dogPhotoStorage.uriMap()
 
     fun saveDogPhotoFromPicker(dogId: String, sourceUri: Uri): Uri? =
@@ -248,6 +286,7 @@ class AppRepository(
                 append("Параметры: ").append(extraParams)
             }
         }
+        val priceRub = desiredPrice.trim().replace(',', '.').toDoubleOrNull()
         return withAuthRetry { token ->
             api.createBooking(
                 token,
@@ -262,7 +301,8 @@ class AppRepository(
                 address_apartment = addressApartment?.takeIf { it.isNotBlank() },
                 meeting_latitude = meetingLat,
                 meeting_longitude = meetingLng,
-                owner_notes = notes,
+                price = priceRub?.takeIf { it > 0 },
+                owner_notes = notes.takeIf { it.isNotBlank() },
             )
             )
         }
@@ -272,86 +312,62 @@ class AppRepository(
         val canonical = canonicalRuCityMoscowOrSpb(city) ?: return emptyList()
         val word = streetQuery.trim()
         if (word.isEmpty()) return emptyList()
+        val parsed = parseStreetHouseQuery(word)
+        val w = parsed.street.trim()
+        if (w.isEmpty()) return emptyList()
+        val house = parsed.houseHint
         val viewbox = viewBoxForRuCity(canonical)
 
-        suspend fun searchBiased(q: String): List<NominatimPlaceDto> = runCatching {
+        // Один «основной» запрос вместо десятка вариантов — иначе Nominatim отвечает 429.
+        val primaryQuery = if (house != null) "$w $house, $canonical, Россия" else "$w, $canonical, Россия"
+
+        val first = nominatimSearchList {
             geoApi.search(
-                query = q,
+                query = primaryQuery,
                 countrycodes = "ru",
                 limit = 25,
                 viewbox = viewbox,
                 bounded = null,
             )
-        }.getOrDefault(emptyList())
+        }
 
-        suspend fun searchStrictBox(q: String): List<NominatimPlaceDto> = runCatching {
-            geoApi.search(
-                query = q,
-                countrycodes = "ru",
-                limit = 25,
-                viewbox = viewbox,
-                bounded = 1,
-            )
-        }.getOrDefault(emptyList())
+        var pool = first.filter { likelyInChosenCity(it, canonical) }.ifEmpty { first }
 
-        suspend fun searchWide(q: String): List<NominatimPlaceDto> = runCatching {
-            geoApi.search(query = q, countrycodes = "ru", limit = 25)
-        }.getOrDefault(emptyList())
-
-        val queries = listOf(
-            "$word, $canonical, Россия",
-            "улица $word, $canonical, Россия",
-            "$word улица, $canonical",
-            "переулок $word, $canonical",
-            "проспект $word, $canonical",
-            "набережная $word, $canonical",
-            "шоссе $word, $canonical",
-            "бульвар $word, $canonical",
-            "$word, $canonical",
-        )
-
-        val merged = LinkedHashMap<String, NominatimPlaceDto>()
-        fun putAll(batch: List<NominatimPlaceDto>) {
-            for (item in batch) {
-                merged.putIfAbsent("${item.lat},${item.lon}", item)
+        // Второй запрос только если первый пустой (ещё один вызов после паузы ≥1 с).
+        if (pool.isEmpty()) {
+            pool = nominatimSearchList {
+                geoApi.search(
+                    query = primaryQuery,
+                    countrycodes = "ru",
+                    limit = 25,
+                )
             }
+            pool = pool.filter { likelyInChosenCity(it, canonical) }.ifEmpty { pool }
         }
 
-        for (q in queries) {
-            putAll(searchBiased(q))
-            if (merged.size >= 45) break
-        }
-        if (merged.size < 8) {
-            for (q in queries) {
-                putAll(searchWide(q))
-                if (merged.size >= 45) break
-            }
-        }
-        if (merged.size < 5) {
-            for (q in queries) {
-                putAll(searchStrictBox(q))
-                if (merged.size >= 45) break
-            }
-        }
-        if (merged.isEmpty()) {
-            putAll(
-                runCatching {
-                    geoApi.searchStructured(
-                        street = word,
-                        city = canonical,
-                        country = "Россия",
-                        countrycodes = "ru",
-                        limit = 20,
-                    )
-                }.getOrDefault(emptyList()),
-            )
-        }
-
-        val pool = merged.values.filter { likelyInChosenCity(it, canonical) }
-            .ifEmpty { merged.values.toList() }
-        val qn = normalizeForMatch(word)
-        return filterAndRankStreetMatches(pool, qn).take(12)
+        val qn = normalizeForMatch(w)
+        val houseNorm = house?.let { normalizeHouseNumber(it) }
+        return filterAndRankStreetMatches(pool, qn, houseNorm).take(12)
     }
+
+    private data class ParsedStreetQuery(val street: String, val houseHint: String?)
+
+    /** Отделяет хвост «10», «15к2» от названия улицы для точного поиска дома. */
+    private fun parseStreetHouseQuery(raw: String): ParsedStreetQuery {
+        val t = raw.trim()
+        if (t.isEmpty()) return ParsedStreetQuery("", null)
+        val re = Regex("""(?iu)^(.+?)[\s,]+(?:д\.?\s*)?(\d{1,4}[а-яёa-z]?)${'$'}""")
+        val m = re.find(t) ?: return ParsedStreetQuery(t, null)
+        val streetPart = m.groupValues[1].trim().trim(',', '.').trim()
+        val house = m.groupValues[2].trim()
+        return if (streetPart.isNotEmpty()) ParsedStreetQuery(streetPart, house) else ParsedStreetQuery(t, null)
+    }
+
+    private fun normalizeHouseNumber(s: String?): String =
+        s?.lowercase()
+            ?.replace('ё', 'е')
+            ?.replace(Regex("\\s+"), "")
+            .orEmpty()
 
     private fun likelyInChosenCity(item: NominatimPlaceDto, canonical: String): Boolean {
         val d = item.display_name.lowercase()
@@ -393,21 +409,50 @@ class AppRepository(
             .trim()
             .replace(Regex("\\s+"), " ")
 
-    private fun filterAndRankStreetMatches(items: List<NominatimPlaceDto>, queryNormalized: String): List<NominatimPlaceDto> {
-        if (queryNormalized.length < 2) return items
+    private fun filterAndRankStreetMatches(
+        items: List<NominatimPlaceDto>,
+        streetQueryNormalized: String,
+        houseNormalized: String?,
+    ): List<NominatimPlaceDto> {
         fun hay(item: NominatimPlaceDto): String {
             val road = item.address?.road.orEmpty()
-            return normalizeForMatch("$road ${item.display_name}")
+            val hn = item.address?.house_number.orEmpty()
+            return normalizeForMatch("$road $hn ${item.display_name}")
         }
-        val matched = items.filter { hay(it).contains(queryNormalized) }
-        val base = if (matched.isNotEmpty()) matched else items
+
+        fun houseMatches(item: NominatimPlaceDto): Boolean {
+            if (houseNormalized.isNullOrBlank()) return true
+            val hn = normalizeHouseNumber(item.address?.house_number)
+            return hn == houseNormalized ||
+                hn.startsWith(houseNormalized) ||
+                hay(item).contains(houseNormalized)
+        }
+
+        var base = items
+        if (streetQueryNormalized.length >= 2) {
+            val sm = items.filter { hay(it).contains(streetQueryNormalized) }
+            if (sm.isNotEmpty()) base = sm
+        }
+        if (!houseNormalized.isNullOrBlank()) {
+            val hm = base.filter { houseMatches(it) }
+            if (hm.isNotEmpty()) base = hm
+        }
         return base.sortedWith(
             compareBy<NominatimPlaceDto> { item ->
+                val hn = normalizeHouseNumber(item.address?.house_number)
+                when {
+                    houseNormalized.isNullOrBlank() -> 0
+                    hn == houseNormalized -> 0
+                    houseMatches(item) -> 1
+                    else -> 2
+                }
+            }.thenBy { item ->
                 val road = item.address?.road?.let { normalizeForMatch(it) }.orEmpty()
                 when {
-                    road.startsWith(queryNormalized) -> 0
-                    road.contains(queryNormalized) -> 1
-                    normalizeForMatch(item.display_name).contains(queryNormalized) -> 2
+                    streetQueryNormalized.isEmpty() -> 3
+                    road.startsWith(streetQueryNormalized) -> 0
+                    streetQueryNormalized.length >= 2 && road.contains(streetQueryNormalized) -> 1
+                    normalizeForMatch(item.display_name).contains(streetQueryNormalized) -> 2
                     else -> 3
                 }
             }.thenBy { it.display_name.length },
@@ -431,8 +476,18 @@ class AppRepository(
             b.address_city,
             b.address_street,
             b.address_house,
-        ) ?: return b
+        ) ?: approximateCityCenterForBooking(b.address_city)
+            ?: return b
         return b.copy(meeting_latitude = p.first, meeting_longitude = p.second)
+    }
+
+    /** Если геокодер недоступен (лимиты Nominatim), показываем точку в центре выбранного города. */
+    private fun approximateCityCenterForBooking(city: String?): Pair<Double, Double>? {
+        val c = canonicalRuCityMoscowOrSpb(city ?: return null) ?: return null
+        return when (c) {
+            "Москва" -> 55.7558 to 37.6173
+            else -> 59.9343 to 30.3351 // Санкт-Петербург
+        }
     }
 
     suspend fun geocodeAddress(
@@ -452,17 +507,17 @@ class AppRepository(
         }
         if (parts.isEmpty()) return null
         val q = parts.joinToString(", ")
-        return runCatching {
+        return nominatimCall(null) {
             val items = geoApi.search(
                 query = q,
                 countrycodes = country?.let { countryCodesFor(it) },
                 limit = 3,
             )
-            val first = items.firstOrNull() ?: return null
-            val lat = first.lat.toDoubleOrNull() ?: return null
-            val lon = first.lon.toDoubleOrNull() ?: return null
+            val first = items.firstOrNull() ?: return@nominatimCall null
+            val lat = first.lat.toDoubleOrNull() ?: return@nominatimCall null
+            val lon = first.lon.toDoubleOrNull() ?: return@nominatimCall null
             lat to lon
-        }.getOrNull()
+        }
     }
 
     private fun countryCodesFor(country: String): String? {
@@ -479,8 +534,13 @@ class AppRepository(
     suspend fun startSession(bookingId: String) = withAuthRetry { api.startSession(it, WalkSessionStartDto(bookingId)) }
     suspend fun sessionByBooking(bookingId: String): WalkSessionDto? = withAuthRetry { token ->
         val response = api.sessionByBooking(bookingId, token)
-        if (!response.isSuccessful) throw HttpException(response)
-        response.body()
+        when (response.code()) {
+            404 -> null
+            else -> {
+                if (!response.isSuccessful) throw HttpException(response)
+                response.body()
+            }
+        }
     }
     suspend fun addPoint(sessionId: String, lat: Double, lng: Double) = withAuthRetry { api.addPoint(sessionId, it, TrackPointInDto(lat, lng)) }
     suspend fun points(sessionId: String, pageSize: Int = 200): List<TrackPointDto> = withAuthRetry { token ->

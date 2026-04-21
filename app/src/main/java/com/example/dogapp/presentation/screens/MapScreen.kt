@@ -50,7 +50,11 @@ fun MapScreen(
     val zoomOut = remember { mutableStateOf(false) }
 
     val isWalker = state.user?.role?.key.equals("walker", ignoreCase = true)
-    val mapBookingsRaw = if (isWalker) state.walkerBookings else state.ownerBookings
+    val mapBookingsRaw = if (isWalker) {
+        state.walkerBookings
+    } else {
+        (state.ownerBookings + state.openBookings).distinctBy { it.id }
+    }
     val mapBookings = mapBookingsRaw.filter { !it.status.equals("COMPLETED", ignoreCase = true) }
     val mapBookingsOrdered = if (isWalker) {
         sortWalkerActiveBookingsForUi(

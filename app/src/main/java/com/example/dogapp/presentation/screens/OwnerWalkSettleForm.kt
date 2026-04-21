@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.dogapp.data.api.BookingDto
+import com.example.dogapp.data.api.displayPriceRub
 import com.example.dogapp.data.api.WalkRouteResponseDto
 import com.example.dogapp.data.api.WalletDto
 import com.example.dogapp.ui.theme.PetProfileColors
@@ -94,7 +95,7 @@ fun OwnerWalkSettleForm(
             color = bodyColor,
         )
         Text(
-            text = "$dogName · ${"%.0f".format(booking.price)} ₽",
+            text = "$dogName · ${"%.0f".format(booking.displayPriceRub())} ₽",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
             color = secondaryLineColor,

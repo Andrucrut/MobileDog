@@ -50,6 +50,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.dogapp.data.api.BookingApplicationDto
 import com.example.dogapp.data.api.BookingDto
+import com.example.dogapp.data.api.displayPriceRub
 import com.example.dogapp.data.api.WalkRouteResponseDto
 import com.example.dogapp.data.api.WalletDto
 import com.example.dogapp.ui.theme.PetProfileColors
@@ -233,7 +234,7 @@ fun BookingDetailScreen(
                 Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     BookingDetailRow(Icons.Outlined.CalendarMonth, "Когда", booking.scheduled_at)
                     BookingDetailRow(Icons.Outlined.Schedule, "Длительность", "${booking.duration_minutes} мин")
-                    BookingDetailRow(Icons.Outlined.Pets, "Стоимость", "${"%.0f".format(booking.price)} ₽")
+                    BookingDetailRow(Icons.Outlined.Pets, "Стоимость", "${"%.0f".format(booking.displayPriceRub())} ₽")
                     BookingDetailRow(
                         Icons.Outlined.Place,
                         "Адрес",

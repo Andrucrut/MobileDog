@@ -34,7 +34,6 @@ import com.example.dogapp.di.AppContainer
 import com.example.dogapp.presentation.screens.*
 import com.example.dogapp.presentation.viewmodel.MainViewModel
 import com.example.dogapp.ui.theme.DogAppTheme
-
 private data class BottomTab(val route: String, val title: String)
 
 @Composable
@@ -163,7 +162,9 @@ fun DogAppRoot() {
                 }
                 composable("booking/{id}") { entry ->
                     val bookingId = entry.arguments?.getString("id") ?: return@composable
-                    val booking = (state.ownerBookings + state.walkerBookings).firstOrNull { it.id == bookingId }
+                    val booking = (state.ownerBookings + state.walkerBookings + state.openBookings)
+                        .distinctBy { it.id }
+                        .firstOrNull { it.id == bookingId }
                     val dogName = booking?.let { b -> state.dogs.firstOrNull { it.id == b.dog_id }?.name }
                     val isWalker = state.user?.role?.key.equals("walker", ignoreCase = true)
                     val isOwner = state.user?.role?.key.equals("owner", ignoreCase = true)
@@ -243,6 +244,7 @@ fun DogAppRoot() {
                     val bookingId = entry.arguments?.getString("bookingId") ?: return@composable
                     val booking = state.walkerBookings.firstOrNull { it.id == bookingId }
                         ?: state.ownerBookings.firstOrNull { it.id == bookingId }
+                        ?: state.openBookings.firstOrNull { it.id == bookingId }
                     val allowWalk = booking?.status?.uppercase() == "CONFIRMED" || booking?.status?.uppercase() == "IN_PROGRESS"
                     if (!allowWalk) {
                         val isWalkerWalk = state.user?.role?.key.equals("walker", true)
@@ -394,7 +396,9 @@ fun DogAppRoot() {
                         if (isOwnerCb || isWalkerCb) vm.loadApplications(bookingId)
                     }
                     val conversation = state.conversations.firstOrNull { it.booking_id == bookingId }
-                    val bookingCb = (state.ownerBookings + state.walkerBookings).firstOrNull { it.id == bookingId }
+                    val bookingCb = (state.ownerBookings + state.walkerBookings + state.openBookings)
+                        .distinctBy { it.id }
+                        .firstOrNull { it.id == bookingId }
                     if (conversation == null) {
                         BookingDetailScreen(
                             booking = bookingCb,
@@ -485,9 +489,10 @@ fun DogAppRoot() {
                     val dogId = entry.arguments?.getString("id")
                     BookingCreateScreen(
                         dog = state.dogs.firstOrNull { it.id == dogId },
+                        onBack = { navController.popBackStack() },
                         onSuggestStreet = { country, city, streetQuery -> vm.suggestStreet(country, city, streetQuery) },
                         onCreate = { did, duration, country, city, street, house, apartment, meetingLat, meetingLng, price, extra ->
-                            vm.createBooking(
+                            val ok = vm.createBooking(
                                 dogId = did,
                                 durationMinutes = duration,
                                 addressCountry = country,
@@ -500,8 +505,10 @@ fun DogAppRoot() {
                                 desiredPrice = price,
                                 extraParams = extra,
                             )
-                            navController.navigate("map") { launchSingleTop = true }
-                        }
+                            if (ok) {
+                                navController.navigate("map") { launchSingleTop = true }
+                            }
+                        },
                     )
                 }
                 composable("dog/{id}/edit") { entry ->

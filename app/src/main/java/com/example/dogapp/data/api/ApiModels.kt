@@ -148,6 +148,18 @@ data class BookingDto(
     val owner_notes: String? = null,
 )
 
+private val desiredPriceFromNotesRe =
+    Regex("""Желаемая\s+цена:\s*([0-9]+(?:[.,][0-9]+)?)""", RegexOption.IGNORE_CASE)
+
+/** Цена в списках и карточке: из API или из текста «Желаемая цена» в заметках, если сервер вернул 0. */
+fun BookingDto.displayPriceRub(): Double {
+    if (price > 0) return price
+    return desiredPriceFromNotesRe.find(owner_notes.orEmpty())?.groupValues?.get(1)
+        ?.replace(',', '.')
+        ?.toDoubleOrNull()
+        ?: 0.0
+}
+
 data class BookingCreateDto(
     val dog_id: String,
     val scheduled_at: String,
@@ -159,6 +171,8 @@ data class BookingCreateDto(
     val address_apartment: String? = null,
     val meeting_latitude: Double? = null,
     val meeting_longitude: Double? = null,
+    /** Сумма заказа в рублях; бэкенд booking-сервиса должен сохранять в поле price. */
+    val price: Double? = null,
     val owner_notes: String? = null,
 )
 
@@ -205,6 +219,9 @@ fun NominatimPlaceDto.cityLabelForForm(): String {
 
 fun NominatimPlaceDto.shortStreetSuggestionLabel(): String {
     val a = address
+    val house = a?.house_number?.trim()?.takeIf { it.isNotEmpty() }
+    fun withHouse(line: String): String =
+        if (house != null) "$line, д. $house" else line
     if (a != null) {
         val district = sequenceOf(
             a.city_district,
@@ -216,12 +233,12 @@ fun NominatimPlaceDto.shortStreetSuggestionLabel(): String {
             .firstOrNull()
         val road = a.road?.trim()?.takeIf { it.isNotEmpty() }
         when {
-            district != null && road != null -> return "$district · $road"
-            road != null -> return road
-            district != null -> return district
+            district != null && road != null -> return withHouse("$district · $road")
+            road != null -> return withHouse(road)
+            district != null -> return withHouse(district)
         }
     }
-    return displayNameShortForSuggestion(display_name)
+    return withHouse(displayNameShortForSuggestion(display_name))
 }
 
 private fun displayNameShortForSuggestion(displayName: String): String {
