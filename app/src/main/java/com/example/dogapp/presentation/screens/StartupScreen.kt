@@ -29,8 +29,16 @@ fun StartupScreen(
         if (loading) {
             CircularProgressIndicator()
             Text("Подключение к серверу…")
+            Text(
+                "Если сервер был неактивен, его запуск может занять до минуты.",
+                style = MaterialTheme.typography.bodyMedium,
+            )
         } else {
             Text(error ?: "Сервер недоступен")
+            Text(
+                "Нажмите «Повторить» через несколько секунд.",
+                style = MaterialTheme.typography.bodyMedium,
+            )
             Button(onClick = onRetry, modifier = Modifier.fillMaxWidth()) { Text("Повторить") }
         }
     }

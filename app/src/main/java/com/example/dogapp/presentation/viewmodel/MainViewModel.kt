@@ -9,6 +9,7 @@ import com.example.dogapp.presentation.screens.UserRoleUi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -81,17 +82,31 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
 
     private suspend fun startupCheck() {
         _state.value = _state.value.copy(loading = true, error = null, startupChecked = false, serverReady = false)
-        runCatching { repository.pingGateway() }
-            .onFailure {
-                _state.value = _state.value.copy(
-                    loading = false,
-                    error = it.message ?: "Не удалось подключиться к серверу",
-                    startupChecked = true,
-                    serverReady = false,
-                    authorized = false,
-                )
-                return
+        val retryDelaysMs = listOf(0L, 4_000L, 6_000L, 10_000L, 15_000L, 20_000L)
+        var pingError: Throwable? = null
+        var serverReady = false
+
+        for ((attemptIndex, delayMs) in retryDelaysMs.withIndex()) {
+            if (attemptIndex > 0) delay(delayMs)
+            val pingAttempt = runCatching { repository.pingGateway() }
+            if (pingAttempt.isSuccess) {
+                serverReady = true
+                break
             }
+            pingError = pingAttempt.exceptionOrNull()
+        }
+
+        if (!serverReady) {
+            _state.value = _state.value.copy(
+                loading = false,
+                error = pingError?.message
+                    ?: "Сервер пока недоступен. Возможно, он просыпается после сна (Render free tier). Подождите и нажмите \"Повторить\".",
+                startupChecked = true,
+                serverReady = false,
+                authorized = false,
+            )
+            return
+        }
 
         val auth = repository.isAuthorized()
         _state.value = _state.value.copy(
